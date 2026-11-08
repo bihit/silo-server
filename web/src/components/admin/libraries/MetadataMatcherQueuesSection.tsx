@@ -19,6 +19,15 @@ import {
   useRetryLibraryMetadataMatchQueue,
 } from "@/hooks/queries/admin/libraries";
 
+const QUEUE_STATE_LABELS: Record<string, string> = {
+  pending: "ausstehend",
+  parked: "zurückgestellt",
+};
+
+function formatQueueState(state: string): string {
+  return QUEUE_STATE_LABELS[state] ?? state;
+}
+
 function formatFailureKind(kind: string): string {
   return kind.replace(/_/g, " ");
 }
@@ -105,7 +114,9 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
             path: entry.file_path,
             state: "pending" as const,
             failureKind: null,
-            message: identity ? `Awaiting initial match: ${identity}` : "Awaiting initial match",
+            message: identity
+              ? `Wartet auf erste Zuordnung: ${identity}`
+              : "Wartet auf erste Zuordnung",
             decision: undefined,
           };
         }),
@@ -116,8 +127,8 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
 
   return (
     <CollapsibleDiagnosticsSection
-      title="Metadata Matcher"
-      description="Pending and parked items that still need a provider match."
+      title="Metadaten-Zuordnung"
+      description="Ausstehende und zurückgestellte Einträge, die noch einem Anbieter zugeordnet werden müssen."
       count={total}
       icon={<Wrench className="h-4 w-4 text-amber-500" />}
       open={open}
@@ -133,9 +144,9 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Library</TableHead>
-              <TableHead className="text-right">Pending</TableHead>
-              <TableHead className="text-right">Parked</TableHead>
+              <TableHead>Bibliothek</TableHead>
+              <TableHead className="text-right">Ausstehend</TableHead>
+              <TableHead className="text-right">Zurückgestellt</TableHead>
               <TableHead className="w-28" />
             </TableRow>
           </TableHeader>
@@ -153,7 +164,7 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                     }}
                   >
                     <TableCell className="font-medium">
-                      {library?.name ?? `Library ${queue.library_id}`}
+                      {library?.name ?? `Bibliothek ${queue.library_id}`}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{queue.pending_count}</TableCell>
                     <TableCell className="text-right tabular-nums">
@@ -175,7 +186,7 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                           retry.mutate(queue.library_id);
                         }}
                       >
-                        Retry now
+                        Jetzt erneut versuchen
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -203,7 +214,7 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                                     <Badge
                                       variant={entry.state === "parked" ? "outline" : "secondary"}
                                     >
-                                      {entry.state}
+                                      {formatQueueState(entry.state)}
                                     </Badge>
                                   </div>
                                 </div>
@@ -224,18 +235,18 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                                           {candidate.year ? ` (${candidate.year})` : ""}
                                         </span>
                                         <span className="tabular-nums">
-                                          score {candidate.score.toFixed(1)}
+                                          Punktzahl {candidate.score.toFixed(1)}
                                           {bar === undefined ? "" : ` / ${bar}`}
                                         </span>
                                         {candidate.matched_title &&
                                         candidate.matched_title !== candidate.title ? (
-                                          <span>matched “{candidate.matched_title}”</span>
+                                          <span>zugeordnet „{candidate.matched_title}“</span>
                                         ) : null}
                                         {candidate.reasons?.length ? (
                                           <span>{candidate.reasons.join(", ")}</span>
                                         ) : null}
                                         {candidate.sources?.length ? (
-                                          <span>via {candidate.sources.join(", ")}</span>
+                                          <span>über {candidate.sources.join(", ")}</span>
                                         ) : null}
                                       </div>
                                     ))}
@@ -246,13 +257,13 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                           })}
                           {detail && detailEntries.length === 0 ? (
                             <p className="text-muted-foreground text-center">
-                              No queued item details.
+                              Keine Details zu wartenden Einträgen.
                             </p>
                           ) : null}
                           {hasPreviousDetailPage || hasNextDetailPage ? (
                             <div className="flex items-center justify-between pt-1">
                               <span className="text-muted-foreground text-xs">
-                                Page {detailPageIndex + 1}
+                                Seite {detailPageIndex + 1}
                               </span>
                               <div className="flex gap-2">
                                 <Button
@@ -264,7 +275,7 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                                     setDetailPageIndex((current) => Math.max(0, current - 1))
                                   }
                                 >
-                                  Previous
+                                  Zurück
                                 </Button>
                                 <Button
                                   type="button"
@@ -284,7 +295,7 @@ export function MetadataMatcherQueuesSection({ libraries }: { libraries: Library
                                     });
                                   }}
                                 >
-                                  Next
+                                  Weiter
                                 </Button>
                               </div>
                             </div>

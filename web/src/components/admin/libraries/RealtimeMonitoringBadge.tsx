@@ -21,10 +21,10 @@ export function RealtimeMonitoringBadge({
     <Badge
       variant="outline"
       className="border-warning/40 text-warning"
-      title={detail || `Real-time monitoring: ${label}`}
+      title={detail || `Echtzeit-Überwachung: ${label}`}
     >
       <AlertTriangle aria-hidden="true" />
-      Monitoring: {label}
+      Überwachung: {label}
       {detail ? <span className="sr-only">. {detail}</span> : null}
     </Badge>
   );

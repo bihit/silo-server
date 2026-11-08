@@ -38,7 +38,7 @@ const (
 // TMDB is the slice of *tmdb.Client the sync uses.
 type TMDB interface {
 	GetMovieCollection(ctx context.Context, movieID int) (*tmdb.CollectionRef, error)
-	GetCollection(ctx context.Context, id int) (*tmdb.Collection, error)
+	GetCollectionInLanguage(ctx context.Context, id int, language string) (*tmdb.Collection, error)
 }
 
 // Store is the slice of *catalog.BoxSetRepository the sync uses.
@@ -46,6 +46,7 @@ type Store interface {
 	MoviesNeedingCollectionLookup(ctx context.Context, staleBefore time.Time, limit int, skip []string) ([]catalog.MovieCollectionLookup, error)
 	RecordMovieCollection(ctx context.Context, contentID string, tmdbID int64, collectionID *int64) error
 	CollectionsNeedingFetch(ctx context.Context, staleBefore time.Time, limit int, skip []int64) ([]int64, error)
+	CollectionLanguage(ctx context.Context, id int64) (string, error)
 	UpsertCollection(ctx context.Context, c catalog.TMDBMovieCollection) error
 	TouchCollection(ctx context.Context, id int64) error
 	DeleteUnusedCollections(ctx context.Context) (int64, error)
@@ -179,7 +180,13 @@ func (s *Syncer) fetchCollections(ctx context.Context, res *Result, tried *[]int
 			if err := ctx.Err(); err != nil {
 				return err
 			}
-			c, err := s.tmdb.GetCollection(ctx, int(id))
+			// Fetch the collection in its libraries' metadata language, the
+			// one their movies' titles are in.
+			language, err := s.store.CollectionLanguage(ctx, id)
+			if err != nil {
+				return err
+			}
+			c, err := s.tmdb.GetCollectionInLanguage(ctx, int(id), language)
 			if errors.Is(err, tmdb.ErrNotFound) {
 				// Keep a stored copy rather than refetching a collection TMDB
 				// no longer serves on every run. One never stored stays due

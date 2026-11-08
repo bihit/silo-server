@@ -8,8 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-
-	"golang.org/x/sys/unix"
 )
 
 // consumedObjects are the objects a full restore or a verify of src reads
@@ -120,11 +118,11 @@ var ErrNoCopySpace = errors.New("not enough free space for a private copy of the
 
 // checkCopySpace requires need bytes free in dir.
 func checkCopySpace(dir string, need uint64) error {
-	var st unix.Statfs_t
-	if err := unix.Statfs(dir, &st); err != nil {
+	st, err := statDisk(dir)
+	if err != nil {
 		return fmt.Errorf("reading free space in %s: %w", dir, err)
 	}
-	if free := blockBytes(st.Bavail, st.Bsize); free < need {
+	if free := st.Free; free < need {
 		return fmt.Errorf("%w in %s: %s free, %s needed (the backup's database dump and files plus 1 GB); free space there or set TMPDIR to a larger disk",
 			ErrNoCopySpace, dir, formatBytes(free), formatBytes(need))
 	}

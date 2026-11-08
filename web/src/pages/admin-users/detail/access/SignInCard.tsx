@@ -16,6 +16,13 @@ import { useAccessGroups } from "@/hooks/queries/admin/accessGroups";
 import { useAdminUserProfiles } from "@/hooks/queries/admin/history";
 import { useAdminPolicyDefaults, useViewerIsOwner } from "@/hooks/queries/admin/users";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  ACCESS_EXPIRY_PASSED_MESSAGE,
+  accessExpiryInputValue,
+  accessExpiryInstant,
+  accessExpiryPassed,
+  formatAccessExpiry,
+} from "@/lib/accessExpiry";
 import { INVALID_EMAIL_MESSAGE, isValidEmail } from "@/lib/email";
 
 import { KeyValueRow } from "../ui";
@@ -35,12 +42,15 @@ import {
 import { useAccountCardDraft } from "./useAccountCardDraft";
 
 const PROFILES_LABEL = "Profiles allowed";
+const ACCESS_UNTIL_LABEL = "Access until";
 
 interface SignInDraft {
   username: string;
   email: string;
   role: string;
   enabled: boolean;
+  /** The end date as a calendar day; "" when the account does not expire. */
+  accessUntil: string;
   /** The profile limit override; `text` keeps a cleared box an unsaved edit, not 0. */
   profiles: RowDraft<number>;
 }
@@ -51,6 +61,7 @@ function toDraft(user: AdminUser): SignInDraft {
     email: user.email,
     role: user.role,
     enabled: user.enabled,
+    accessUntil: accessExpiryInputValue(user.access_expires_at),
     profiles: rowDraft(
       user.max_profiles,
       user.max_profiles === null ? "" : String(user.max_profiles),
@@ -64,6 +75,8 @@ function changedRows(draft: SignInDraft, base: SignInDraft): string[] {
   if (draft.email !== base.email) rows.push("Email");
   if (draft.role !== base.role) rows.push("Role");
   if (draft.enabled !== base.enabled) rows.push("Can sign in");
+  if (draft.role !== "admin" && draft.accessUntil !== base.accessUntil)
+    rows.push(ACCESS_UNTIL_LABEL);
   if (rowChanged(draft.profiles, rowOverride(base.profiles) ?? null)) rows.push(PROFILES_LABEL);
   return rows;
 }
@@ -78,6 +91,13 @@ function toBody(draft: SignInDraft, base: AdminUser): UpdateUserRequest {
     if (draft.role === "admin") body.access_group_id = null;
   }
   if (draft.enabled !== base.enabled) body.enabled = draft.enabled;
+  // An admin never has an end date: the server drops it on promotion.
+  if (
+    draft.role !== "admin" &&
+    draft.accessUntil !== accessExpiryInputValue(base.access_expires_at)
+  ) {
+    body.access_expires_at = accessExpiryInstant(draft.accessUntil);
+  }
   const profiles = rowOverride(draft.profiles);
   if (profiles !== undefined && rowChanged(draft.profiles, base.max_profiles)) {
     body.max_profiles = profiles;
@@ -114,6 +134,13 @@ function profilesIncomplete(draft: SignInDraft, saved: SignInDraft): boolean {
 function validate(draft: SignInDraft, base: AdminUser): string | null {
   if (draft.username.trim() === "") return "Enter a username.";
   if (!isValidEmail(draft.email)) return INVALID_EMAIL_MESSAGE;
+  if (
+    draft.role !== "admin" &&
+    draft.enabled &&
+    draft.accessUntil !== "" &&
+    accessExpiryPassed(draft.accessUntil)
+  )
+    return ACCESS_EXPIRY_PASSED_MESSAGE;
   if (profilesIncomplete(draft, toDraft(base)))
     return "Allow at least 1 profile, or choose Default.";
   return null;
@@ -150,6 +177,7 @@ export function SignInCard({
   const emailId = useId();
   const roleId = useId();
   const enabledId = useId();
+  const accessUntilId = useId();
   const profilesId = useId();
 
   const used = profiles.data?.length;
@@ -267,6 +295,24 @@ export function SignInCard({
               />
             }
           />
+          {d.role !== "admin" ? (
+            <KeyValueRow
+              label={<Label htmlFor={accessUntilId}>{ACCESS_UNTIL_LABEL}</Label>}
+              description="After this day the account is disabled automatically. Leave empty for no end date."
+              changed={changed.has(ACCESS_UNTIL_LABEL)}
+              value={
+                <Input
+                  id={accessUntilId}
+                  type="date"
+                  className="w-44"
+                  value={d.accessUntil}
+                  onChange={(event) =>
+                    draft.setDraft((prev) => ({ ...prev, accessUntil: event.target.value }))
+                  }
+                />
+              }
+            />
+          ) : null}
           <KeyValueRow
             label={
               d.profiles.custom ? (
@@ -355,6 +401,12 @@ export function SignInCard({
               </>
             }
           />
+          {user.role !== "admin" ? (
+            <KeyValueRow
+              label={ACCESS_UNTIL_LABEL}
+              value={formatAccessExpiry(user.access_expires_at, "No end date")}
+            />
+          ) : null}
           <PolicyValueRow
             label={PROFILES_LABEL}
             value={

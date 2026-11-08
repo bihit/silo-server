@@ -110,6 +110,7 @@ const AdminUsers = lazy(() => import("@/pages/AdminUsers"));
 const AdminRequests = lazy(() => import("@/pages/AdminRequests"));
 const AdminDevices = lazy(() => import("@/pages/AdminDevices"));
 const AdminLibraries = lazy(() => import("@/pages/AdminLibraries"));
+const AdminSeriesGaps = lazy(() => import("@/pages/AdminSeriesGaps"));
 const AdminAutoscan = lazy(() => import("@/pages/AdminAutoscan"));
 const AdminAutoscanActivity = lazy(() => import("@/pages/AdminAutoscanActivity"));
 const AdminSettingsLayout = lazy(() => import("@/pages/admin-settings/AdminSettingsLayout"));
@@ -531,6 +532,7 @@ function AppRoutes() {
                   <Route path="logs" element={<AdminLogs />} />
                   <Route path="diagnostics" element={<AdminDiagnostics />} />
                   <Route path="libraries" element={<AdminLibraries />} />
+                  <Route path="series-gaps" element={<AdminSeriesGaps />} />
                   <Route path="maintenance" element={<AdminMaintenance />} />
                   <Route path="backups" element={<AdminBackups />} />
                   <Route path="backups/:id/restore" element={<AdminBackupRestore />} />

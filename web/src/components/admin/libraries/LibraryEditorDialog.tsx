@@ -38,31 +38,31 @@ const SECTIONS: Array<{
 }> = [
   {
     id: "general",
-    label: "General",
+    label: "Allgemein",
     icon: Settings2,
-    title: "General",
-    description: "Name this library and choose the kind of media it holds.",
+    title: "Allgemein",
+    description: "Benenne die Bibliothek und wähle, welche Art von Medien sie enthält.",
   },
   {
     id: "folders",
-    label: "Folders",
+    label: "Ordner",
     icon: FolderOpen,
-    title: "Folders",
-    description: "Silo scans these folders for media and watches them for changes.",
+    title: "Ordner",
+    description: "Silo durchsucht diese Ordner nach Medien und überwacht sie auf Änderungen.",
   },
   {
     id: "metadata",
-    label: "Metadata",
+    label: "Metadaten",
     icon: Database,
-    title: "Metadata",
-    description: "Control where artwork and descriptions come from, and in which language.",
+    title: "Metadaten",
+    description: "Lege fest, woher Bilder und Beschreibungen kommen und in welcher Sprache.",
   },
   {
     id: "advanced",
-    label: "Advanced",
+    label: "Erweitert",
     icon: SlidersHorizontal,
-    title: "Advanced",
-    description: "Optional background processing for this library.",
+    title: "Erweitert",
+    description: "Optionale Hintergrundverarbeitung für diese Bibliothek.",
   },
 ];
 
@@ -148,11 +148,11 @@ function LibraryEditorBody({
             <typeMeta.icon className="size-5" />
           </div>
           <div className="min-w-0 space-y-0.5 text-left">
-            <DialogTitle>{library ? "Edit Library" : "Add Library"}</DialogTitle>
+            <DialogTitle>{library ? "Bibliothek bearbeiten" : "Bibliothek hinzufügen"}</DialogTitle>
             <DialogDescription className="truncate text-xs">
               {library
-                ? `Configure how “${library.name}” is scanned and matched.`
-                : "Set up a new library from folders on your server."}
+                ? `Lege fest, wie „${library.name}“ gescannt und zugeordnet wird.`
+                : "Richte eine neue Bibliothek aus Ordnern auf deinem Server ein."}
             </DialogDescription>
           </div>
         </div>
@@ -234,17 +234,17 @@ function LibraryEditorBody({
         ) : null}
         <DialogClose asChild>
           <Button type="button" variant="ghost">
-            Cancel
+            Abbrechen
           </Button>
         </DialogClose>
         <Button type="submit" disabled={form.isPending}>
           {form.isPending
             ? library
-              ? "Saving…"
-              : "Creating…"
+              ? "Wird gespeichert …"
+              : "Wird erstellt …"
             : library
-              ? "Save Changes"
-              : "Create Library"}
+              ? "Änderungen speichern"
+              : "Bibliothek erstellen"}
         </Button>
       </div>
     </form>

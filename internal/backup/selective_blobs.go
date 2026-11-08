@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/sys/unix"
-
 	"github.com/Silo-Server/silo-server/internal/branding"
 	"github.com/Silo-Server/silo-server/internal/imageutil"
 )
@@ -120,11 +118,11 @@ func checkTempSpace(dir string, rs *RestoreSet, keep map[string]bool) error {
 	}
 	// The read writes every account document there too (UserRef).
 	need += uint64(rs.userBytes) + freeSpaceMargin //nolint:gosec // G115: tar header sizes the read checked are not negative
-	var st unix.Statfs_t
-	if err := unix.Statfs(dir, &st); err != nil {
+	st, err := statDisk(dir)
+	if err != nil {
 		return fmt.Errorf("reading free space in the temporary directory: %w", err)
 	}
-	if free := blockBytes(st.Bavail, st.Bsize); free < need {
+	if free := st.Free; free < need {
 		return fmt.Errorf("%w: %s free, %s needed (the selected items' files plus 1 GB); free space or select fewer items",
 			ErrNotEnoughTempSpace, formatBytes(free), formatBytes(need))
 	}

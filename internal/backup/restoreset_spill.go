@@ -15,8 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/sys/unix"
-
 	"github.com/Silo-Server/silo-server/internal/backup/jsonsize"
 	"github.com/Silo-Server/silo-server/internal/backup/userdata"
 )
@@ -106,15 +104,34 @@ func (rs *RestoreSet) makeDir(parent string) error {
 }
 
 func lockedOwner(dir string) (*os.File, error) {
+	if !renameOpenFiles {
+		return lockedOwnerInPlace(dir)
+	}
 	owner, err := os.CreateTemp(dir, setDirOwner+"-")
 	if err != nil {
 		return nil, err
 	}
-	if err := unix.Flock(int(owner.Fd()), unix.LOCK_EX|unix.LOCK_NB); err != nil {
+	if err := lockExclusiveNonBlocking(owner); err != nil {
 		_ = owner.Close()
 		return nil, err
 	}
 	if err := os.Rename(owner.Name(), filepath.Join(dir, setDirOwner)); err != nil {
+		_ = owner.Close()
+		return nil, err
+	}
+	return owner, nil
+}
+
+// lockedOwnerInPlace creates the owner file under its own name and locks it,
+// for a platform that cannot rename a file this process holds open. The
+// file is unlocked only between those two calls, far inside
+// unlockedSetDirAge of a sweep that judges by the lock alone.
+func lockedOwnerInPlace(dir string) (*os.File, error) {
+	owner, err := os.OpenFile(filepath.Join(dir, setDirOwner), os.O_CREATE|os.O_EXCL|os.O_RDWR, 0o600) //nolint:gosec // G304: the set's own new directory
+	if err != nil {
+		return nil, err
+	}
+	if err := lockExclusiveNonBlocking(owner); err != nil {
 		_ = owner.Close()
 		return nil, err
 	}
@@ -150,7 +167,7 @@ func orphanedSetDir(dir string) bool {
 	}
 	defer func() { _ = owner.Close() }()
 	// The probe's own lock goes with Close.
-	return unix.Flock(int(owner.Fd()), unix.LOCK_EX|unix.LOCK_NB) == nil
+	return lockExclusiveNonBlocking(owner) == nil
 }
 
 // userDocument writes an account document to the set's directory, checking
@@ -175,11 +192,11 @@ func (p *restoreSetParser) userDocument(h *tar.Header, tr io.Reader, want FileDi
 
 // checkSpillSpace requires need bytes plus freeSpaceMargin free in dir.
 func checkSpillSpace(dir string, need int64) error {
-	var st unix.Statfs_t
-	if err := unix.Statfs(dir, &st); err != nil {
+	st, err := statDisk(dir)
+	if err != nil {
 		return &tempStorageError{fmt.Errorf("reading its free space: %w", err)}
 	}
-	free := blockBytes(st.Bavail, st.Bsize)
+	free := st.Free
 	if want := uint64(need) + freeSpaceMargin; free < want { //nolint:gosec // G115: sizes the index check made non-negative
 		return fmt.Errorf("%w: the backup's accounts need %s in %s and %s is free (with 1 GB to spare); free space there or set TMPDIR to a larger disk",
 			ErrNotEnoughTempSpace, formatBytes(want), dir, formatBytes(free))

@@ -170,8 +170,10 @@ func (r artResolver) source(ref string) string {
 	if strings.Contains(ref, "://") {
 		return remoteArtSource(ref)
 	}
-	// Windows paths and other platforms' forms name nothing on this server.
-	if strings.ContainsRune(ref, '\\') || (len(ref) > 1 && ref[1] == ':') {
+	// Windows paths and other platforms' forms name nothing on a Unix server.
+	// On Windows they are the native form Kodi writes, and the containment
+	// check below still confines them to the item's folders.
+	if filepath.Separator != '\\' && (strings.ContainsRune(ref, '\\') || (len(ref) > 1 && ref[1] == ':')) {
 		return ""
 	}
 	path := ref

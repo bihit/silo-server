@@ -2662,6 +2662,8 @@ export interface AdminUser {
   created_at: string;
   updated_at: string;
   last_active_at?: string;
+  /** When an ordinary account's access ends; null or absent when it does not expire. */
+  access_expires_at?: string | null;
 }
 
 // Policy fields left undefined at create inherit from the access group.
@@ -2689,6 +2691,8 @@ export interface CreateUserRequest {
   download_allowed?: boolean;
   download_transcode_allowed?: boolean;
   requests_allowed?: boolean;
+  /** Ordinary accounts only: once this instant passes, the server disables the account. */
+  access_expires_at?: string | null;
 }
 
 // Policy fields are tri-state on update: absent leaves the stored value
@@ -2718,6 +2722,8 @@ export interface UpdateUserRequest {
   download_allowed?: boolean | null;
   download_transcode_allowed?: boolean | null;
   requests_allowed?: boolean | null;
+  /** null removes the end date. */
+  access_expires_at?: string | null;
 }
 
 export interface AdminStats {

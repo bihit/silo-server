@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/sys/unix"
-
 	"github.com/Silo-Server/silo-server/internal/blobstore"
 )
 
@@ -240,11 +238,11 @@ func (d StoreDestination) FreeBytes(context.Context) (uint64, bool, error) {
 	if !ok {
 		return 0, false, nil
 	}
-	var st unix.Statfs_t
-	if err := unix.Statfs(root, &st); err != nil {
+	st, err := statDisk(root)
+	if err != nil {
 		return 0, true, fmt.Errorf("reading free space at the backup destination: %w", err)
 	}
-	return blockBytes(st.Bavail, st.Bsize), true, nil
+	return st.Free, true, nil
 }
 
 // blockBytes is blocks times a Statfs block size, whose type differs by

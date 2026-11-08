@@ -739,6 +739,9 @@ func runCompatWebCommand(ctx context.Context, args []string) error {
 // seeded value, and applied to the startup snapshot before the watchers run.
 func normalizeLoadedConfig(cfg *config.Config) {
 	cfg.Playback.FFmpegPath = playback.ResolveFFmpegPath(cfg.Playback.FFmpegPath)
+	// Disabled transcoding confines every playback FFmpeg process to stream
+	// copies, whichever API or client started it.
+	playback.SetStreamCopyOnly(!cfg.Playback.TranscodeEnabled)
 }
 
 // applyBootstrapOverrides replaces the settings the process environment owns

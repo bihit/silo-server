@@ -261,6 +261,12 @@ func PlanPlaybackV3(input PlannerInputV3) (result PlannerResultV3) {
 	if input.RequestedFile == nil {
 		return terminalPlannerResultV3("source_unavailable", "The requested media source is unavailable.", false)
 	}
+	// With transcoding disabled no route may encode: not the video, not the
+	// audio of a remux, not a burned-in subtitle. Registered first, this runs
+	// after every other refusal and has the last word.
+	if !input.Settings.TranscodeEnabled {
+		defer func() { result = refuseEncodingRouteV3(result) }()
+	}
 	file := input.EffectiveFile
 	if file == nil {
 		file = input.RequestedFile

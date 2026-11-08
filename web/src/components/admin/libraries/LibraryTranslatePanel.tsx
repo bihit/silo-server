@@ -59,9 +59,9 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
       if (!watched.delete(job.id)) continue;
       finished = true;
       if (job.status === "completed") {
-        toast.success(job.progress_message || "Library translation finished.");
+        toast.success(job.progress_message || "Übersetzung der Bibliothek abgeschlossen.");
       } else if (job.status === "failed") {
-        toast.error(job.error_message || "Library translation failed.");
+        toast.error(job.error_message || "Übersetzung der Bibliothek fehlgeschlagen.");
       }
     }
     if (finished) {
@@ -74,7 +74,7 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
   const busy = translate.isPending || activeJobs.length > 0;
   const start = () => {
     if (!targetLang) {
-      toast.error("Pick a target language first.");
+      toast.error("Wähle zuerst eine Zielsprache.");
       return;
     }
     translate.mutate(targetLang);
@@ -84,17 +84,17 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
     <div className="border-border bg-muted/30 space-y-3 rounded-md border px-3 py-3">
       <div className="flex items-center gap-2">
         <Languages className="text-muted-foreground h-4 w-4" aria-hidden="true" />
-        <span className="text-sm font-medium">Translate library descriptions</span>
+        <span className="text-sm font-medium">Beschreibungen der Bibliothek übersetzen</span>
       </div>
       <p className="text-muted-foreground text-xs">
-        Translates every overview and tagline in this library, with season and episode overviews,
-        that is missing in the chosen language. Descriptions that already exist in that language are
-        kept. Viewers otherwise get translations as they browse.
+        Übersetzt jede Beschreibung und jeden Slogan dieser Bibliothek, einschließlich der Staffel-
+        und Episodenbeschreibungen, die in der gewählten Sprache fehlen. Vorhandene Beschreibungen
+        in dieser Sprache bleiben erhalten. Sonst bekommen Zuschauer Übersetzungen beim Stöbern.
       </p>
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <Label htmlFor={`library-translate-target-${libraryId}`} className="text-xs">
-            Language
+            Sprache
           </Label>
           <select
             id={`library-translate-target-${libraryId}`}
@@ -103,7 +103,7 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
             onChange={(event) => setTargetLang(event.target.value)}
             disabled={busy}
           >
-            <option value="">Select…</option>
+            <option value="">Auswählen …</option>
             {LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>
                 {lang.label}
@@ -119,11 +119,11 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
             onClick={() => cancel.mutate(activeJob.id)}
             disabled={cancel.isPending}
           >
-            Stop
+            Stoppen
           </Button>
         ) : (
           <Button type="button" size="sm" onClick={start} disabled={busy}>
-            {translate.isPending ? "Starting…" : "Translate"}
+            {translate.isPending ? "Wird gestartet …" : "Übersetzen"}
           </Button>
         )}
       </div>
@@ -131,7 +131,7 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
         <div key={job.id} className="flex items-center gap-2">
           <p className="text-muted-foreground text-xs" role="status">
             {activeJobs.length > 1 && `${languageLabel(job.target_language)}: `}
-            {job.progress_message || "Queued"}
+            {job.progress_message || "In Warteschlange"}
             {job.fields_total > 0 && ` (${Math.round(job.progress * 100)}%)`}
           </p>
           {!activeJob && (
@@ -142,7 +142,7 @@ export function LibraryTranslatePanel({ libraryId }: { libraryId: number }) {
               onClick={() => cancel.mutate(job.id)}
               disabled={cancel.isPending}
             >
-              Stop
+              Stoppen
             </Button>
           )}
         </div>

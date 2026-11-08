@@ -535,6 +535,11 @@ func StartTranscode(ctx context.Context, opts TranscodeOpts) (*TranscodeSession,
 	}
 
 	args := buildFFmpegArgs(opts)
+	if err := guardStreamCopyArgs(args); err != nil {
+		cancel()
+		releaseHWDevice()
+		return nil, err
+	}
 	bin := opts.FFmpegPath
 	if bin == "" {
 		bin = ffmpegBinary()
@@ -3653,6 +3658,15 @@ func (s *TranscodeSession) restart(
 	}
 
 	args := buildFFmpegArgs(opts)
+	if err := guardStreamCopyArgs(args); err != nil {
+		s.mu.Lock()
+		flight.err = err
+		s.restarting = nil
+		s.waitErr = err
+		s.mu.Unlock()
+		close(flight.done)
+		return err
+	}
 	bin := opts.FFmpegPath
 	if bin == "" {
 		bin = ffmpegBinary()

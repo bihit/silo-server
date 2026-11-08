@@ -26,10 +26,10 @@ export function LibraryRefreshDialog({
     <Dialog open={libraryName !== null} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Refresh Library Metadata</DialogTitle>
+          <DialogTitle>Metadaten der Bibliothek aktualisieren</DialogTitle>
           <DialogDescription>
-            Choose how much of {libraryName ?? "this library"} to refresh from its metadata
-            providers.
+            Wähle, wie viel von {libraryName ?? "dieser Bibliothek"} bei den Metadaten-Anbietern
+            aktualisiert werden soll.
           </DialogDescription>
         </DialogHeader>
 
@@ -46,10 +46,10 @@ export function LibraryRefreshDialog({
               <RefreshCw className="text-muted-foreground mt-0.5 size-5 shrink-0" />
             )}
             <div className="space-y-1">
-              <div className="text-sm font-semibold">Refresh Missing Metadata</div>
+              <div className="text-sm font-semibold">Fehlende Metadaten aktualisieren</div>
               <div className="text-muted-foreground text-sm">
-                Refresh matched items that were never refreshed, are missing an overview or artwork,
-                or failed a previous refresh.
+                Aktualisiert zugeordnete Einträge, die noch nie aktualisiert wurden, denen eine
+                Beschreibung oder Bilder fehlen oder deren letzte Aktualisierung fehlgeschlagen ist.
               </div>
             </div>
           </button>
@@ -66,11 +66,11 @@ export function LibraryRefreshDialog({
               <DatabaseBackup className="text-muted-foreground mt-0.5 size-5 shrink-0" />
             )}
             <div className="space-y-1">
-              <div className="text-sm font-semibold">Refresh All Metadata</div>
+              <div className="text-sm font-semibold">Alle Metadaten aktualisieren</div>
               <div className="text-muted-foreground text-sm">
-                Re-fetch every item from its providers, including titles, artwork, seasons, and
-                episodes. Large libraries can take hours. Locked fields and artwork stay as they
-                are.
+                Lädt jeden Eintrag neu von seinen Anbietern, einschließlich Titel, Bilder, Staffeln
+                und Episoden. Große Bibliotheken können Stunden dauern. Gesperrte Felder und Bilder
+                bleiben unverändert.
               </div>
             </div>
           </button>
@@ -78,7 +78,7 @@ export function LibraryRefreshDialog({
 
         <div className="flex justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancel
+            Abbrechen
           </Button>
         </div>
       </DialogContent>

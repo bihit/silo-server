@@ -235,8 +235,9 @@ export function useLibraryForm({
 
   const allErrors = useMemo<LibraryFormErrors>(() => {
     const next: LibraryFormErrors = {};
-    if (!name.trim()) next.name = "Give this library a name.";
-    if (!paths.some((p) => p.trim())) next.paths = "Add at least one folder to scan.";
+    if (!name.trim()) next.name = "Gib der Bibliothek einen Namen.";
+    if (!paths.some((p) => p.trim()))
+      next.paths = "Füge mindestens einen Ordner zum Scannen hinzu.";
     return next;
   }, [name, paths]);
   const errors: LibraryFormErrors = submitAttempted ? allErrors : {};

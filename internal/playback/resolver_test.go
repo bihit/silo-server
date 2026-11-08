@@ -505,3 +505,19 @@ func TestNormalizeAndValidateVideoDecodeLowercasesDetailedEntries(t *testing.T) 
 		t.Fatalf("normalization did not apply: %+v", caps)
 	}
 }
+
+// With transcoding disabled, an unsupported audio codec is not converted:
+// the resolver falls back to the original file like any other encode need.
+func TestResolver_TranscodeDisabledNeverTranscodesAudio(t *testing.T) {
+	file := &models.MediaFile{
+		CodecVideo: "h264", CodecAudio: "dts", Container: "mkv",
+		Resolution: "1080p", HDR: false,
+	}
+	settings := defaultSettings()
+	settings.TranscodeEnabled = false
+	decision := playback.Resolve(file, defaultCaps(), settings)
+
+	if decision.Method != playback.PlayDirect || decision.TranscodeAudio {
+		t.Errorf("decision = %+v, want direct play without audio transcode", decision)
+	}
+}

@@ -34,11 +34,13 @@ export function useCreateInviteCode() {
         retryAuthentication: false,
       }),
     onSuccess: () => {
-      toast.success("Invite code created");
+      toast.success("Einladungscode erstellt");
       queryClient.invalidateQueries({ queryKey: adminKeys.inviteCodes() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to create invite code");
+      toast.error(
+        err instanceof Error ? err.message : "Einladungscode konnte nicht erstellt werden",
+      );
     },
   });
 }
@@ -53,7 +55,9 @@ export function useUpdateInviteCode() {
       queryClient.invalidateQueries({ queryKey: adminKeys.inviteCodes() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to update invite code");
+      toast.error(
+        err instanceof Error ? err.message : "Einladungscode konnte nicht geändert werden",
+      );
     },
   });
 }
@@ -69,13 +73,13 @@ export function useTopUpInviteCode() {
         retryAuthentication: false,
       }),
     onSuccess: () => {
-      toast.success("Invite code topped up");
+      toast.success("Einladungscode aufgestockt");
       queryClient.invalidateQueries({ queryKey: adminKeys.inviteCodes() });
     },
     onError: (err) => {
       toast.error(
-        "Check the code’s current maximum uses before retrying the top-up. " +
-          (err instanceof Error ? err.message : "The result could not be confirmed."),
+        "Prüfe die aktuelle maximale Nutzung des Codes, bevor du erneut aufstockst. " +
+          (err instanceof Error ? err.message : "Das Ergebnis konnte nicht bestätigt werden."),
       );
       void queryClient.invalidateQueries({ queryKey: adminKeys.inviteCodes() });
     },
@@ -89,11 +93,13 @@ export function useDeleteInviteCode() {
     mutationFn: (id: string) =>
       v2("DELETE /api/v2/admin/invite-codes/{id}", { path: { id }, retryAuthentication: false }),
     onSuccess: () => {
-      toast.success("Invite code deleted");
+      toast.success("Einladungscode gelöscht");
       queryClient.invalidateQueries({ queryKey: adminKeys.inviteCodes() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to delete invite code");
+      toast.error(
+        err instanceof Error ? err.message : "Einladungscode konnte nicht gelöscht werden",
+      );
     },
   });
 }

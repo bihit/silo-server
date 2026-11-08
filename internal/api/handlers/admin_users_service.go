@@ -166,6 +166,9 @@ func (h *AdminHandler) CreateAdminAccount(ctx context.Context, input auth.Create
 		}
 		input.User.MaxPlaybackQuality = new(value)
 	}
+	if err := validateAccessExpiry(input.User.Role, true, input.User.AccessExpiresAt, time.Now()); err != nil {
+		return 0, err
+	}
 	tx, err := h.pool.Begin(ctx)
 	if err != nil {
 		return 0, err
@@ -275,6 +278,21 @@ func (h *AdminHandler) UpdateAdminAccount(ctx context.Context, id int, revision,
 				return false, err
 			}
 		}
+		expires := current.AccessExpiresAt
+		if input.AccessExpiresAt.Set {
+			expires = input.AccessExpiresAt.Value
+		} else if role == roleAdmin && expires != nil {
+			// Promotion to admin drops the end date: admins never expire.
+			input.AccessExpiresAt = models.ClearValue[time.Time]()
+			expires = nil
+		}
+		enabled := current.Enabled
+		if input.Enabled != nil {
+			enabled = *input.Enabled
+		}
+		if err := validateAccessExpiry(role, enabled, expires, time.Now()); err != nil {
+			return false, err
+		}
 		revoked = updateRequiresSessionRevocation(current, input)
 		return revoked, nil
 	})
@@ -325,6 +343,77 @@ func (h *AdminHandler) DeleteAdminAccount(ctx context.Context, id int, revision,
 	h.sweepWatchlistTitles(ctx, id)
 	h.invalidateStats(ctx, cache.ChannelAdmin, cache.EventAdminStatsInvalidated, strconv.Itoa(id))
 	return nil
+}
+
+// validateAccessExpiry checks an account's end date as it will be stored:
+// only ordinary accounts carry one, and an enabled account's end date must
+// still be ahead, or the expiry sweep would disable it again at once.
+func validateAccessExpiry(role string, enabled bool, expires *time.Time, now time.Time) error {
+	if expires == nil {
+		return nil
+	}
+	if role == roleAdmin {
+		return fieldError("access_expires_at", "Admin accounts cannot have an end date")
+	}
+	if enabled && !expires.After(now) {
+		return fieldError("access_expires_at", "The end date has passed; choose a later date to keep the account enabled")
+	}
+	return nil
+}
+
+// ExpireAccounts disables every enabled ordinary account whose end date has
+// passed, through the same guarded mutation as an administrator's disable, so
+// its sign-ins are revoked and every enabled check refuses it from then on.
+// It returns how many accounts it disabled.
+func (h *AdminHandler) ExpireAccounts(ctx context.Context) (int, error) {
+	repo, ok := h.userRepo.(adminAccountRepository)
+	if !ok || h.pool == nil {
+		return 0, nil
+	}
+	rows, err := h.pool.Query(ctx, `SELECT id FROM users
+		WHERE enabled AND role = $1 AND access_expires_at IS NOT NULL AND access_expires_at <= now()
+		ORDER BY id`, models.RoleUser)
+	if err != nil {
+		return 0, err
+	}
+	ids, err := pgx.CollectRows(rows, pgx.RowTo[int])
+	if err != nil {
+		return 0, err
+	}
+	disabled := 0
+	for _, id := range ids {
+		input := models.UpdateUserInput{Enabled: new(false)}
+		revoked := false
+		_, err := repo.MutateAdminAccount(ctx, id, -1, &input, func(current *models.User, _ pgx.Tx) (bool, error) {
+			// Re-check under the row lock: an administrator may have moved
+			// the date or changed the account since the scan.
+			if !current.Enabled || current.Role == roleAdmin || current.AccessExpiresAt == nil || current.AccessExpiresAt.After(time.Now()) {
+				input = models.UpdateUserInput{}
+				return false, nil
+			}
+			revoked = true
+			return true, nil
+		})
+		if err != nil {
+			if errors.Is(err, auth.ErrNotFound) {
+				continue
+			}
+			return disabled, err
+		}
+		if !revoked {
+			continue
+		}
+		disabled++
+		slog.InfoContext(ctx, "account access expired; account disabled", "component", "api", "user_id", id)
+		if h.OnUserSessionsRevoked != nil {
+			h.OnUserSessionsRevoked(ctx, id)
+		}
+		notifyAccountsScopeChanged(ctx, h.RecWorker, id)
+	}
+	if disabled > 0 {
+		h.invalidateStats(ctx, cache.ChannelAdmin, cache.EventAdminStatsInvalidated, "")
+	}
+	return disabled, nil
 }
 
 // enableLocalLoginWithPassword makes an administrator's password write turn

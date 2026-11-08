@@ -206,7 +206,7 @@ func (h *Host) Start(ctx context.Context, req StartRequest) (*Client, error) {
 		ingressToken = token
 	}
 
-	command := exec.Command(req.BinaryPath)
+	command := RunnableBinary(exec.Command(req.BinaryPath), req.BinaryPath)
 	command.Env = ProcessEnv()
 	process := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: HandshakeConfig(),

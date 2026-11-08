@@ -11,7 +11,7 @@ import {
 
 describe("formatStreamBitrateLimit", () => {
   it("shows 0 as unlimited and every cap in exact Mbps", () => {
-    expect(formatStreamBitrateLimit(0)).toBe("Unlimited");
+    expect(formatStreamBitrateLimit(0)).toBe("Unbegrenzt");
     expect(formatStreamBitrateLimit(8000)).toBe("8 Mbps");
     expect(formatStreamBitrateLimit(1500)).toBe("1.5 Mbps");
     expect(formatStreamBitrateLimit(1234)).toBe("1.234 Mbps");

@@ -147,7 +147,13 @@ func (c *Client) doGet(ctx context.Context, path string, dest any) error {
 	if strings.Contains(path, "?") {
 		sep = "&"
 	}
-	reqURL := c.baseURL + path + sep + "api_key=" + url.QueryEscape(c.apiKey)
+	// A v4 read access token (a JWT) authenticates v3 requests as a bearer
+	// header; a v3 key rides in the query string.
+	bearer := isReadAccessToken(c.apiKey)
+	reqURL := c.baseURL + path
+	if !bearer {
+		reqURL += sep + "api_key=" + url.QueryEscape(c.apiKey)
+	}
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		// A retry is another request against the same budget.
@@ -161,6 +167,9 @@ func (c *Client) doGet(ctx context.Context, path string, dest any) error {
 			return fmt.Errorf("tmdb: create request: %w", logredact.SanitizeURLError(err))
 		}
 		req.Header.Set("Accept", "application/json")
+		if bearer {
+			req.Header.Set("Authorization", "Bearer "+c.apiKey)
+		}
 
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
@@ -219,6 +228,12 @@ func (c *Client) doGet(ctx context.Context, path string, dest any) error {
 		return nil
 	}
 	return fmt.Errorf("tmdb: max retries exceeded")
+}
+
+// isReadAccessToken reports whether key is a TMDB v4 read access token: a JWT
+// of three dot-separated parts, rather than a 32-character v3 API key.
+func isReadAccessToken(key string) bool {
+	return strings.HasPrefix(key, "eyJ") && strings.Count(key, ".") == 2
 }
 
 // retryAfterOrDefault parses the Retry-After header (seconds) or falls back
@@ -832,12 +847,24 @@ func joinIntSlice(values []int, sep string) string {
 // collection_id=0 are surfaced as failures by the sync path, not silently
 // turned into an empty fetch.
 func (c *Client) GetCollection(ctx context.Context, id int) (*Collection, error) {
+	return c.GetCollectionInLanguage(ctx, id, "")
+}
+
+// GetCollectionInLanguage fetches a collection with its name, overview and
+// artwork in language (an ISO 639-1 code such as "de"). TMDB falls back to
+// the collection's original text where it has no translation. An empty
+// language sends none, which TMDB answers in English.
+func (c *Client) GetCollectionInLanguage(ctx context.Context, id int, language string) (*Collection, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("tmdb: collection id must be > 0 (got %d)", id)
 	}
 
+	path := fmt.Sprintf("/collection/%d", id)
+	if lang := strings.TrimSpace(language); lang != "" {
+		path += "?language=" + url.QueryEscape(lang)
+	}
 	var resp collectionResponse
-	if err := c.doGet(ctx, fmt.Sprintf("/collection/%d", id), &resp); err != nil {
+	if err := c.doGet(ctx, path, &resp); err != nil {
 		return nil, err
 	}
 

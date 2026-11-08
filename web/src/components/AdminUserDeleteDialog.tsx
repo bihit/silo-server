@@ -66,13 +66,13 @@ export function AdminUserDeleteDialog({
     void run(async () => {
       await deleteUser.mutateAsync(editor);
       onDeleted();
-    }, "Could not delete user.");
+    }, "Benutzer konnte nicht gelöscht werden.");
   }
   function disable() {
     void run(async () => {
       await updateUser.mutateAsync({ editor, body: { enabled: false } });
       onDisabled?.();
-    }, "Could not disable user.");
+    }, "Benutzer konnte nicht deaktiviert werden.");
   }
   async function reload() {
     if (busy.current) return;
@@ -83,7 +83,7 @@ export function AdminUserDeleteDialog({
       setConflict(false);
       setError("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not reload user.");
+      setError(err instanceof Error ? err.message : "Benutzer konnte nicht neu geladen werden.");
     } finally {
       busy.current = false;
       setPending(false);
@@ -98,27 +98,29 @@ export function AdminUserDeleteDialog({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {username}?</AlertDialogTitle>
+          <AlertDialogTitle>{username} löschen?</AlertDialogTitle>
           <AlertDialogDescription>
-            This removes the account,{" "}
+            Das entfernt das Konto,{" "}
             {profileCount === undefined
-              ? "its profiles"
-              : `its ${profileCount} ${profileCount === 1 ? "profile" : "profiles"}`}
-            , watch history, and saved preferences. It can't be undone.
+              ? "seine Profile"
+              : `seine ${profileCount} ${profileCount === 1 ? "Profil" : "Profile"}`}
+            , den Wiedergabeverlauf und gespeicherte Einstellungen. Das kann nicht rückgängig
+            gemacht werden.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {offerDisable && (
           <div className="border-info/25 bg-info/5 text-muted-foreground flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm">
             <Info aria-hidden="true" className="text-info mt-0.5 size-4 shrink-0" />
             <span>
-              Want to keep the history? <strong className="text-foreground">Disable</strong> the
-              account instead. It stops sign-in and keeps everything.
+              Möchtest du den Verlauf behalten? Dann{" "}
+              <strong className="text-foreground">deaktiviere</strong> das Konto stattdessen. Die
+              Anmeldung wird gesperrt, alles andere bleibt erhalten.
             </span>
           </div>
         )}
         <div className="space-y-2">
           <label htmlFor={confirmId} className="text-sm font-medium">
-            Type <span className="font-mono">{username}</span> to confirm
+            Zum Bestätigen <span className="font-mono">{username}</span> eingeben
           </label>
           <Input
             id={confirmId}
@@ -131,19 +133,19 @@ export function AdminUserDeleteDialog({
         {error && <p role="alert">{error}</p>}
         {conflict && (
           <>
-            <p>The user changed. Reload before trying again.</p>
+            <p>Der Benutzer wurde inzwischen geändert. Bitte vor dem nächsten Versuch neu laden.</p>
             <Button disabled={pending} onClick={() => void reload()}>
-              Reload current user
+              Aktuellen Benutzer neu laden
             </Button>
           </>
         )}
         <AlertDialogFooter>
           <Button variant="ghost" disabled={pending} onClick={onClose}>
-            Cancel
+            Abbrechen
           </Button>
           {offerDisable && (
             <Button variant="outline" disabled={pending || conflict} onClick={disable}>
-              Disable instead
+              Stattdessen deaktivieren
             </Button>
           )}
           <Button
@@ -151,7 +153,7 @@ export function AdminUserDeleteDialog({
             disabled={pending || conflict || !confirmed}
             onClick={remove}
           >
-            Delete account
+            Konto löschen
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

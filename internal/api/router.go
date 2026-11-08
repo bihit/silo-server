@@ -1810,6 +1810,13 @@ func newChiRouter(deps Dependencies) chi.Router {
 		if deps.RecWorker != nil {
 			adminHandler.RecWorker = deps.RecWorker
 		}
+		startAccountExpirySweep(deps.AppContext, adminHandler)
+		// Only an administrator's own TMDB key drives the comparison, so the
+		// shared project key is never spent on a full-library sweep.
+		if deps.Config != nil && deps.Config.TMDBAPIKey != "" {
+			adminHandler.SeriesTMDB = tmdb.NewClient(deps.Config.TMDBAPIKey, 10)
+			startSeriesTMDBSweep(deps.AppContext, adminHandler)
+		}
 	}
 	if accessGroupStore != nil {
 		accessGroupHandler = handlers.NewAccessGroupHandler(accessGroupStore)
@@ -3061,6 +3068,7 @@ func newChiRouter(deps Dependencies) chi.Router {
 	v2deps.AdminItemMetadata = adminHandler
 	if adminHandler != nil {
 		v2deps.AdminUnmatchedFiles = adminHandler
+		v2deps.AdminSeriesGaps = adminHandler
 	}
 	if itemRepo != nil {
 		v2deps.AdminCatalogItems = itemRepo

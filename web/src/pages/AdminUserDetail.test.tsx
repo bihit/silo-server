@@ -389,7 +389,7 @@ describe("header", () => {
     renderUserDetail();
     await ui.click(screen.getByRole("button", { name: "View as user" }));
     await ui.click(
-      within(screen.getByRole("alertdialog")).getByRole("button", { name: "View as user" }),
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "Als Benutzer ansehen" }),
     );
     const captured = mocks.impersonate.mock.calls[0]![0].profileContext;
     setProfileId("different-profile");
@@ -418,10 +418,14 @@ describe("more actions", () => {
     const ui = userEvent.setup();
     renderUserDetail();
     await ui.click(within(await openMenu(ui)).getByRole("menuitem", { name: "Delete account…" }));
-    const dialog = await screen.findByRole("alertdialog", { name: "Delete taylor?" });
-    expect(dialog).toHaveTextContent("its 2 profiles, watch history, and saved preferences");
-    expect(within(dialog).getByRole("button", { name: "Delete account" })).toBeDisabled();
-    expect(within(dialog).getByRole("button", { name: "Disable instead" })).toBeInTheDocument();
+    const dialog = await screen.findByRole("alertdialog", { name: "taylor löschen?" });
+    expect(dialog).toHaveTextContent(
+      "seine 2 Profile, den Wiedergabeverlauf und gespeicherte Einstellungen",
+    );
+    expect(within(dialog).getByRole("button", { name: "Konto löschen" })).toBeDisabled();
+    expect(
+      within(dialog).getByRole("button", { name: "Stattdessen deaktivieren" }),
+    ).toBeInTheDocument();
   });
 });
 

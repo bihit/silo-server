@@ -142,10 +142,10 @@ describe("AdminUsers row actions", () => {
     const row = screen.getByRole("link", { name: "founder" }).closest("tr")!;
     expect(within(row).getByText("owner")).toBeInTheDocument();
     expect(within(row).queryByText("admin")).toBeNull();
-    expect(screen.queryByRole("link", { name: "Edit founder" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Delete founder" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "View as user: founder" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Edit taylor" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "founder bearbeiten" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "founder löschen" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Als Benutzer ansehen: founder" })).toBeNull();
+    expect(screen.getByRole("link", { name: "taylor bearbeiten" })).toBeInTheDocument();
   });
 
   it("keeps an admin other than the owner off other admin accounts", () => {
@@ -154,23 +154,23 @@ describe("AdminUsers row actions", () => {
     mocks.users = [adminUser, owner, other, self];
     mocks.viewer = { id: 8 };
     renderPage();
-    expect(screen.queryByRole("link", { name: "Edit other" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Delete other" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Edit self" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Delete self" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Edit taylor" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Delete taylor" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "other bearbeiten" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "other löschen" })).toBeNull();
+    expect(screen.getByRole("link", { name: "self bearbeiten" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "self löschen" })).toBeNull();
+    expect(screen.getByRole("link", { name: "taylor bearbeiten" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "taylor löschen" })).toBeInTheDocument();
   });
 
   it("lets the owner edit itself and view as another admin, but not delete itself", () => {
     mocks.users = [owner, { ...adminUser, id: 8, username: "admin", role: "admin" }];
     renderPage();
-    expect(screen.getByRole("button", { name: "View as user: admin" })).toBeEnabled();
-    expect(screen.getByRole("link", { name: "Edit admin" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Delete admin" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Edit founder" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Delete founder" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "View as user: founder" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Als Benutzer ansehen: admin" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "admin bearbeiten" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "admin löschen" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "founder bearbeiten" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "founder löschen" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Als Benutzer ansehen: founder" })).toBeNull();
   });
 
   it("offers View as user only for enabled non-admin accounts", () => {
@@ -180,15 +180,15 @@ describe("AdminUsers row actions", () => {
       { ...adminUser, id: 9, username: "disabled", enabled: false },
     ];
     renderPage();
-    expect(screen.getByRole("button", { name: "View as user: taylor" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "View as user: admin" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "View as user: disabled" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Als Benutzer ansehen: taylor" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Als Benutzer ansehen: admin" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Als Benutzer ansehen: disabled" })).toBeNull();
   });
 
   it("does not offer View as user when administration is unavailable", () => {
     mocks.available = false;
     renderPage();
-    expect(screen.queryByRole("button", { name: /View as user/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Als Benutzer ansehen/ })).toBeNull();
   });
 
   it("starts the selected user's session only after confirmation and returns to the list", async () => {
@@ -198,10 +198,10 @@ describe("AdminUsers row actions", () => {
       profileContext,
     }));
     renderPage();
-    await user.click(screen.getByRole("button", { name: "View as user: taylor" }));
+    await user.click(screen.getByRole("button", { name: "Als Benutzer ansehen: taylor" }));
     expect(mocks.impersonate).not.toHaveBeenCalled();
     await user.click(
-      within(screen.getByRole("alertdialog")).getByRole("button", { name: "View as user" }),
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "Als Benutzer ansehen" }),
     );
     await waitFor(() => expect(mocks.beginImpersonation).toHaveBeenCalledWith({}, "/admin/users"));
     expect(mocks.impersonate).toHaveBeenCalledTimes(1);
@@ -213,9 +213,9 @@ describe("AdminUsers row actions", () => {
     const user = userEvent.setup();
     mocks.impersonate.mockRejectedValue(new Error("This user is disabled."));
     renderPage();
-    await user.click(screen.getByRole("button", { name: "View as user: taylor" }));
+    await user.click(screen.getByRole("button", { name: "Als Benutzer ansehen: taylor" }));
     await user.click(
-      within(screen.getByRole("alertdialog")).getByRole("button", { name: "View as user" }),
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "Als Benutzer ansehen" }),
     );
     expect(await screen.findByText("This user is disabled.")).toBeInTheDocument();
     expect(mocks.beginImpersonation).not.toHaveBeenCalled();
@@ -262,7 +262,7 @@ describe("AdminUsers user dialog policy hints", () => {
   async function openLimits(user: ReturnType<typeof userEvent.setup>, button: string | RegExp) {
     await user.click(screen.getByRole("button", { name: button }));
     const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
     return dialog;
   }
 
@@ -271,10 +271,10 @@ describe("AdminUsers user dialog policy hints", () => {
     dialog: HTMLElement,
     role: string,
   ) {
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("combobox", { name: "Role" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("combobox", { name: "Rolle" }));
     await user.click(await screen.findByRole("option", { name: role }));
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
   }
 
   it("keeps a new user's hints on its group while the group list loads", async () => {
@@ -282,16 +282,16 @@ describe("AdminUsers user dialog policy hints", () => {
     mocks.users = [ownerViewer];
     const user = userEvent.setup();
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
 
     // A new regular account always joins the default group, so until the
     // list loads its values are unknown, not the server's no-group ones.
-    expect(within(dialog).getAllByText("Inherited from group").length).toBeGreaterThan(0);
-    expect(within(dialog).queryByText(/Server default|Unlimited/)).not.toBeInTheDocument();
+    expect(within(dialog).getAllByText("Von der Gruppe geerbt").length).toBeGreaterThan(0);
+    expect(within(dialog).queryByText(/Server-Standard|Unbegrenzt/)).not.toBeInTheDocument();
 
     await chooseRole(user, dialog, "Admin");
-    expect(within(dialog).getAllByText("Admin default: Unlimited")).toHaveLength(4);
-    expect(within(dialog).queryByText(/Inherit/)).not.toBeInTheDocument();
+    expect(within(dialog).getAllByText("Admin-Standard: Unbegrenzt")).toHaveLength(4);
+    expect(within(dialog).queryByText(/Geerbt|übernehmen/)).not.toBeInTheDocument();
   });
 
   it("previews the default group a new user joins", async () => {
@@ -299,29 +299,29 @@ describe("AdminUsers user dialog policy hints", () => {
     mocks.accessGroupsLoaded = true;
     const user = userEvent.setup();
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
 
-    expect(within(dialog).getByText("Inherited: 5")).toBeInTheDocument();
-    expect(within(dialog).getByText("Inherited: 3")).toBeInTheDocument();
-    expect(within(dialog).getByText("Inherited: 2")).toBeInTheDocument();
+    expect(within(dialog).getByText("Geerbt: 5")).toBeInTheDocument();
+    expect(within(dialog).getByText("Geerbt: 3")).toBeInTheDocument();
+    expect(within(dialog).getByText("Geerbt: 2")).toBeInTheDocument();
   });
 
   it("uses the server defaults once a loaded list has no default group", async () => {
     mocks.accessGroupsLoaded = true;
     const user = userEvent.setup();
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
 
     // The server then creates the account without a group.
-    expect(within(dialog).getAllByText("Server default: Unlimited")).toHaveLength(4);
-    expect(within(dialog).getByText("Server default: 5")).toBeInTheDocument();
-    expect(within(dialog).queryByText(/Inherit/)).not.toBeInTheDocument();
+    expect(within(dialog).getAllByText("Server-Standard: Unbegrenzt")).toHaveLength(4);
+    expect(within(dialog).getByText("Server-Standard: 5")).toBeInTheDocument();
+    expect(within(dialog).queryByText(/Geerbt|übernehmen/)).not.toBeInTheDocument();
   });
 
   async function openAccess(user: ReturnType<typeof userEvent.setup>, button: string | RegExp) {
     await user.click(screen.getByRole("button", { name: button }));
     const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("tab", { name: "Access" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Zugriff" }));
     return dialog;
   }
 
@@ -333,21 +333,21 @@ describe("AdminUsers user dialog policy hints", () => {
     mocks.create.mockReset().mockResolvedValue({ id: 11 });
     const user = userEvent.setup();
     renderPage();
-    const dialog = await openAccess(user, /Add User/);
+    const dialog = await openAccess(user, /Benutzer hinzufügen/);
 
-    const group = within(dialog).getByRole("combobox", { name: "Group" });
+    const group = within(dialog).getByRole("combobox", { name: "Gruppe" });
     expect(group).toHaveTextContent(defaultGroup.name);
     await user.click(group);
     // The server places a new account in the default group when none is sent,
     // so creation doesn't offer "No group".
-    expect(screen.queryByRole("option", { name: "No group" })).toBeNull();
+    expect(screen.queryByRole("option", { name: "Keine Gruppe" })).toBeNull();
     await user.click(await screen.findByRole("option", { name: "Guests" }));
 
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.type(within(dialog).getByLabelText("Username"), "newbie");
-    await user.type(within(dialog).getByLabelText("Email"), "newbie@example.test");
-    await user.type(within(dialog).getByLabelText(/^Password/), "a-long-password");
-    await user.click(within(dialog).getByRole("button", { name: /create|save/i }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.type(within(dialog).getByLabelText("Benutzername"), "newbie");
+    await user.type(within(dialog).getByLabelText("E-Mail"), "newbie@example.test");
+    await user.type(within(dialog).getByLabelText(/^Passwort/), "a-long-password");
+    await user.click(within(dialog).getByRole("button", { name: /erstellen|speichern/i }));
 
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create.mock.calls[0]![0].body.access_group_id).toBe(3);
@@ -361,11 +361,13 @@ describe("AdminUsers user dialog policy hints", () => {
     mocks.accessGroupsLoaded = true;
     const user = userEvent.setup();
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
     await chooseRole(user, dialog, "Admin");
-    await user.click(within(dialog).getByRole("tab", { name: "Access" }));
-    expect(within(dialog).getByRole("combobox", { name: "Group" })).toBeDisabled();
-    expect(within(dialog).getByText("Admin accounts can't join groups.")).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("tab", { name: "Zugriff" }));
+    expect(within(dialog).getByRole("combobox", { name: "Gruppe" })).toBeDisabled();
+    expect(
+      within(dialog).getByText("Admin-Konten können keiner Gruppe angehören."),
+    ).toBeInTheDocument();
   });
   // Overrides Max Streams to 3 in a fresh Create User dialog and fills the
   // account fields, so only the limit can stop the save. The 3 is the last
@@ -373,39 +375,39 @@ describe("AdminUsers user dialog policy hints", () => {
   async function openCreateWithStreamsOverride(user: ReturnType<typeof userEvent.setup>) {
     mocks.create.mockReset().mockResolvedValue({ id: 11 });
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
     // Max Streams is the first field on the Limits tab.
     await user.click(within(dialog).getAllByRole("switch")[0]!);
-    await user.type(within(dialog).getByLabelText("Max Streams"), "3");
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.type(within(dialog).getByLabelText("Username"), "newbie");
-    await user.type(within(dialog).getByLabelText("Email"), "newbie@example.test");
-    await user.type(within(dialog).getByLabelText(/^Password/), "a-long-password");
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
+    await user.type(within(dialog).getByLabelText("Max. Streams"), "3");
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.type(within(dialog).getByLabelText("Benutzername"), "newbie");
+    await user.type(within(dialog).getByLabelText("E-Mail"), "newbie@example.test");
+    await user.type(within(dialog).getByLabelText(/^Passwort/), "a-long-password");
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
     return dialog;
   }
 
   it("refuses to save a cleared limit from another tab and shows the Limits tab", async () => {
     const user = userEvent.setup();
     const dialog = await openCreateWithStreamsOverride(user);
-    await user.clear(within(dialog).getByLabelText("Max Streams"));
+    await user.clear(within(dialog).getByLabelText("Max. Streams"));
 
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
     // The browser reports a field by firing `invalid` at it.
     const reported: EventTarget[] = [];
     dialog
       .querySelector("form")!
       .addEventListener("invalid", (event) => reported.push(event.target!), true);
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
 
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(within(dialog).getByRole("tab", { name: "Limits" })).toHaveAttribute(
+    expect(within(dialog).getByRole("tab", { name: "Grenzen" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     // The field still shows the edit, not the last valid value, and the
     // browser points at it.
-    const field = within(dialog).getByLabelText("Max Streams");
+    const field = within(dialog).getByLabelText("Max. Streams");
     expect(field).toHaveValue(null);
     expect(reported).toContain(field);
   });
@@ -413,29 +415,29 @@ describe("AdminUsers user dialog policy hints", () => {
   it("keeps a non-whole limit across a tab switch and still refuses to save it", async () => {
     const user = userEvent.setup();
     const dialog = await openCreateWithStreamsOverride(user);
-    await user.clear(within(dialog).getByLabelText("Max Streams"));
-    await user.type(within(dialog).getByLabelText("Max Streams"), "1.5");
+    await user.clear(within(dialog).getByLabelText("Max. Streams"));
+    await user.type(within(dialog).getByLabelText("Max. Streams"), "1.5");
 
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    expect(within(dialog).queryByLabelText("Max Streams")).not.toBeInTheDocument();
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
-    expect(within(dialog).getByLabelText("Max Streams")).toHaveValue(1.5);
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    expect(within(dialog).queryByLabelText("Max. Streams")).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
+    expect(within(dialog).getByLabelText("Max. Streams")).toHaveValue(1.5);
 
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(within(dialog).getByLabelText("Max Streams")).toHaveValue(1.5);
+    expect(within(dialog).getByLabelText("Max. Streams")).toHaveValue(1.5);
   });
 
   it("saves the retyped value after a cleared limit", async () => {
     const user = userEvent.setup();
     const dialog = await openCreateWithStreamsOverride(user);
-    await user.clear(within(dialog).getByLabelText("Max Streams"));
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
-    await user.type(within(dialog).getByLabelText("Max Streams"), "2");
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.clear(within(dialog).getByLabelText("Max. Streams"));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
+    await user.type(within(dialog).getByLabelText("Max. Streams"), "2");
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create.mock.calls[0]![0].body.max_streams).toBe(2);
   });
@@ -443,24 +445,24 @@ describe("AdminUsers user dialog policy hints", () => {
   // Overrides Max remote stream bitrate to a custom 7 Mbps (not a preset) in a
   // fresh Create User dialog and fills the account fields, so only the bitrate
   // can stop the save. 7000 kbps is the last valid value a later edit could leave.
-  const remoteMbps = "Max remote stream bitrate in Mbps";
+  const remoteMbps = "Max. Bitrate extern in Mbps";
   const remoteOverride = (dialog: HTMLElement) =>
     within(
-      within(dialog).getByText("Max remote stream bitrate").closest("div.space-y-1") as HTMLElement,
+      within(dialog).getByText("Max. Bitrate extern").closest("div.space-y-1") as HTMLElement,
     ).getByRole("switch");
   async function openCreateWithCustomRemoteBitrate(user: ReturnType<typeof userEvent.setup>) {
     mocks.create.mockReset().mockResolvedValue({ id: 11 });
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
     await user.click(remoteOverride(dialog));
-    await user.click(within(dialog).getByRole("combobox", { name: "Max remote stream bitrate" }));
+    await user.click(within(dialog).getByRole("combobox", { name: "Max. Bitrate extern" }));
     await user.click(await screen.findByRole("option", { name: "Custom" }));
     await user.type(within(dialog).getByLabelText(remoteMbps), "7");
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.type(within(dialog).getByLabelText("Username"), "newbie");
-    await user.type(within(dialog).getByLabelText("Email"), "newbie@example.test");
-    await user.type(within(dialog).getByLabelText(/^Password/), "a-long-password");
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.type(within(dialog).getByLabelText("Benutzername"), "newbie");
+    await user.type(within(dialog).getByLabelText("E-Mail"), "newbie@example.test");
+    await user.type(within(dialog).getByLabelText(/^Passwort/), "a-long-password");
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
     return dialog;
   }
 
@@ -469,15 +471,15 @@ describe("AdminUsers user dialog policy hints", () => {
     const dialog = await openCreateWithCustomRemoteBitrate(user);
     await user.clear(within(dialog).getByLabelText(remoteMbps));
 
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
     const reported: EventTarget[] = [];
     dialog
       .querySelector("form")!
       .addEventListener("invalid", (event) => reported.push(event.target!), true);
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
 
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(within(dialog).getByRole("tab", { name: "Limits" })).toHaveAttribute(
+    expect(within(dialog).getByRole("tab", { name: "Grenzen" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
@@ -493,12 +495,12 @@ describe("AdminUsers user dialog policy hints", () => {
     await user.clear(within(dialog).getByLabelText(remoteMbps));
     await user.type(within(dialog).getByLabelText(remoteMbps), "abc");
 
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
     const reported: EventTarget[] = [];
     dialog
       .querySelector("form")!
       .addEventListener("invalid", (event) => reported.push(event.target!), true);
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
 
     expect(mocks.create).not.toHaveBeenCalled();
     const field = within(dialog).getByLabelText(remoteMbps);
@@ -510,11 +512,11 @@ describe("AdminUsers user dialog policy hints", () => {
     const user = userEvent.setup();
     const dialog = await openCreateWithCustomRemoteBitrate(user);
     await user.clear(within(dialog).getByLabelText(remoteMbps));
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("tab", { name: "Limits" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("tab", { name: "Grenzen" }));
     await user.type(within(dialog).getByLabelText(remoteMbps), "1.5");
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create.mock.calls[0]![0].body.max_remote_stream_bitrate_kbps).toBe(1500);
   });
@@ -524,8 +526,8 @@ describe("AdminUsers user dialog policy hints", () => {
     const dialog = await openCreateWithCustomRemoteBitrate(user);
     await user.clear(within(dialog).getByLabelText(remoteMbps));
     await user.click(remoteOverride(dialog));
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create.mock.calls[0]![0].body).not.toHaveProperty(
       "max_remote_stream_bitrate_kbps",
@@ -537,16 +539,16 @@ describe("AdminUsers user dialog policy hints", () => {
     mocks.create.mockReset().mockResolvedValue({ id: 11 });
     const user = userEvent.setup();
     renderPage();
-    const dialog = await openLimits(user, /Add User/);
+    const dialog = await openLimits(user, /Benutzer hinzufügen/);
     await user.click(remoteOverride(dialog));
-    await user.click(within(dialog).getByRole("tab", { name: "Account" }));
-    await user.type(within(dialog).getByLabelText("Username"), "newbie");
-    await user.type(within(dialog).getByLabelText("Email"), "newbie@example.test");
-    await user.type(within(dialog).getByLabelText(/^Password/), "a-long-password");
-    await user.click(within(dialog).getByRole("button", { name: /save/i }));
+    await user.click(within(dialog).getByRole("tab", { name: "Konto" }));
+    await user.type(within(dialog).getByLabelText("Benutzername"), "newbie");
+    await user.type(within(dialog).getByLabelText("E-Mail"), "newbie@example.test");
+    await user.type(within(dialog).getByLabelText(/^Passwort/), "a-long-password");
+    await user.click(within(dialog).getByRole("button", { name: /speichern/i }));
 
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(within(dialog).getByRole("tab", { name: "Limits" })).toHaveAttribute(
+    expect(within(dialog).getByRole("tab", { name: "Grenzen" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
@@ -577,13 +579,13 @@ describe("AdminUsers access group column and filter", () => {
   it("filters users by access group", async () => {
     const user = userEvent.setup();
     renderPage("/admin/users?tab=invite-codes");
-    expect(screen.getByRole("tab", { name: "Invite Codes" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Einladungscodes" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     expect(screen.getByText("Invite codes panel")).toBeInTheDocument();
-    await user.click(screen.getByRole("tab", { name: "Users" }));
-    const filter = screen.getByRole("combobox", { name: "Filter by access group" });
+    await user.click(screen.getByRole("tab", { name: "Benutzer" }));
+    const filter = screen.getByRole("combobox", { name: "Nach Zugriffsgruppe filtern" });
 
     await user.click(filter);
     await user.click(await screen.findByRole("option", { name: "Guests" }));
@@ -592,14 +594,14 @@ describe("AdminUsers access group column and filter", () => {
     expect(screen.queryByRole("link", { name: "root" })).toBeNull();
 
     await user.click(filter);
-    await user.click(await screen.findByRole("option", { name: "No group" }));
+    await user.click(await screen.findByRole("option", { name: "Keine Gruppe" }));
     expect(screen.getByRole("link", { name: "robin" })).toBeInTheDocument();
     // Admin accounts can't join groups, so they aren't listed as "No group".
     expect(screen.queryByRole("link", { name: "root" })).toBeNull();
     expect(screen.queryByRole("link", { name: "sam" })).toBeNull();
 
     await user.click(filter);
-    await user.click(await screen.findByRole("option", { name: "All groups" }));
+    await user.click(await screen.findByRole("option", { name: "Alle Gruppen" }));
     expect(screen.getByRole("link", { name: "root" })).toBeInTheDocument();
   });
 
@@ -611,9 +613,51 @@ describe("AdminUsers access group column and filter", () => {
     const user = userEvent.setup();
     renderPage();
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Could not load access groups");
-    await user.click(within(alert).getByRole("button", { name: "Retry" }));
+    expect(alert).toHaveTextContent("Zugriffsgruppen konnten nicht geladen werden");
+    await user.click(within(alert).getByRole("button", { name: "Erneut versuchen" }));
     expect(mocks.refetchAccessGroups).toHaveBeenCalled();
     mocks.accessGroupsFailed = false;
+  });
+});
+
+describe("AdminUsers access subscription overview", () => {
+  const inDays = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
+
+  beforeEach(() => {
+    setAccessToken("account");
+    setProfileId("owner");
+    setProfileToken(null);
+    mocks.available = true;
+    mocks.useAdminServerSettings.mockReturnValue({ data: {}, isLoading: false });
+    mocks.accessGroups = [];
+    mocks.accessGroupsLoaded = true;
+    mocks.users = [
+      { ...adminUser, id: 7, username: "soon", role: "user", access_expires_at: inDays(3) },
+      { ...adminUser, id: 8, username: "later", role: "user", access_expires_at: inDays(90) },
+      { ...adminUser, id: 9, username: "ended", role: "user", access_expires_at: inDays(-2) },
+      { ...adminUser, id: 10, username: "open", role: "user", access_expires_at: null },
+    ];
+  });
+
+  it("counts accounts per state and filters by a tile", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const overview = screen.getByRole("group", { name: "Abo-Übersicht" });
+    const soonTile = within(overview).getByRole("button", { name: /Läuft bald ab/ });
+    expect(soonTile).toHaveTextContent("1");
+
+    await user.click(soonTile);
+    expect(soonTile).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("link", { name: "soon" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "later" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "open" })).toBeNull();
+
+    await user.click(within(overview).getByRole("button", { name: /Kein Abo/ }));
+    expect(screen.getByRole("link", { name: "open" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "soon" })).toBeNull();
+
+    await user.click(within(overview).getByRole("button", { name: /Kein Abo/ }));
+    expect(screen.getByRole("link", { name: "ended" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "later" })).toBeInTheDocument();
   });
 });

@@ -171,25 +171,25 @@ const DEFAULT_SOURCE_TEXT: Record<
   { prefix: string; unknown: string; allLibraries: string; revert: string; quality: string }
 > = {
   group: {
-    prefix: "Inherited",
-    unknown: "Inherited from group",
-    allLibraries: "Inherit from group",
-    revert: "inherit",
-    quality: "Uses the access group's quality ceiling.",
+    prefix: "Geerbt",
+    unknown: "Von der Gruppe geerbt",
+    allLibraries: "Von der Gruppe übernehmen",
+    revert: "den Gruppenwert zu übernehmen",
+    quality: "Verwendet die Qualitätsobergrenze der Zugriffsgruppe.",
   },
   admin: {
-    prefix: "Admin default",
-    unknown: "Admin default",
-    allLibraries: "Admin default",
-    revert: "use the admin default",
-    quality: "Uses the admin default quality ceiling.",
+    prefix: "Admin-Standard",
+    unknown: "Admin-Standard",
+    allLibraries: "Admin-Standard",
+    revert: "den Admin-Standard zu verwenden",
+    quality: "Verwendet die Standard-Qualitätsobergrenze für Admins.",
   },
   server: {
-    prefix: "Server default",
-    unknown: "Server default",
-    allLibraries: "Server default",
-    revert: "use the server default",
-    quality: "Uses the server default quality ceiling.",
+    prefix: "Server-Standard",
+    unknown: "Server-Standard",
+    allLibraries: "Server-Standard",
+    revert: "den Server-Standard zu verwenden",
+    quality: "Verwendet die Standard-Qualitätsobergrenze des Servers.",
   },
 };
 
@@ -271,11 +271,15 @@ function BooleanPolicyRow({
           <SelectItem value={INHERIT}>
             {defaultHint(
               source,
-              effectiveValue === undefined ? undefined : effectiveValue ? "Allowed" : "Not allowed",
+              effectiveValue === undefined
+                ? undefined
+                : effectiveValue
+                  ? "Erlaubt"
+                  : "Nicht erlaubt",
             )}
           </SelectItem>
-          <SelectItem value="allowed">Allowed</SelectItem>
-          <SelectItem value="blocked">Not allowed</SelectItem>
+          <SelectItem value="allowed">Erlaubt</SelectItem>
+          <SelectItem value="blocked">Nicht erlaubt</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -315,7 +319,7 @@ function PolicyOverrideField({
         <Label htmlFor={id}>{label}</Label>
         <div className="flex items-center gap-2">
           <Label htmlFor={overrideId} className="text-muted-foreground text-xs">
-            Override
+            Überschreiben
           </Label>
           <Switch id={overrideId} checked={overridden} onCheckedChange={onOverriddenChange} />
         </div>
@@ -365,7 +369,7 @@ function LimitPolicyField({
   const draftValue = limitDraftValue(draft, min);
   const help =
     draftValue === null
-      ? `Enter a whole number${min > 0 ? ` of at least ${min}` : ""}, or turn Override off to ${DEFAULT_SOURCE_TEXT[source].revert}.`
+      ? `Gib eine ganze Zahl${min > 0 ? ` ab ${min}` : ""} ein, oder schalte „Überschreiben“ aus, um ${DEFAULT_SOURCE_TEXT[source].revert}.`
       : min === 0
         ? "0 = unlimited"
         : undefined;
@@ -405,7 +409,7 @@ function LimitPolicyField({
         effectiveValue === undefined
           ? undefined
           : effectiveValue === 0
-            ? "Unlimited"
+            ? "Unbegrenzt"
             : String(effectiveValue)
       }
     >
@@ -506,8 +510,8 @@ export function PolicyAccessFields({
           effective?.library_ids === undefined
             ? undefined
             : effective.library_ids === null
-              ? "All libraries"
-              : `${effective.library_ids.length} libraries`,
+              ? "Alle Bibliotheken"
+              : `${effective.library_ids.length} Bibliotheken`,
         )}
       />
       <div className="grid gap-2 sm:grid-cols-2">
@@ -520,7 +524,7 @@ export function PolicyAccessFields({
           disabled={disabled}
         />
         <BooleanPolicyRow
-          label="Download Transcodes"
+          label="Transkodierte Downloads"
           value={state.downloadTranscodeAllowed}
           onValueChange={(downloadTranscodeAllowed) =>
             onChange({ ...state, downloadTranscodeAllowed })
@@ -531,8 +535,8 @@ export function PolicyAccessFields({
         />
       </div>
       <BooleanPolicyRow
-        label="Media Requests"
-        description="Request new movies and series when requests are enabled."
+        label="Medienwünsche"
+        description="Neue Filme und Serien anfragen, wenn Wünsche aktiviert sind."
         value={state.requestsAllowed}
         onValueChange={(requestsAllowed) => onChange({ ...state, requestsAllowed })}
         source={source}
@@ -562,7 +566,7 @@ export function PolicyLimitFields({
     <>
       <div className="grid gap-3 sm:grid-cols-2">
         <LimitPolicyField
-          label="Max Streams"
+          label="Max. Streams"
           value={state.maxStreams}
           onValueChange={(maxStreams) => onChange({ ...state, maxStreams })}
           source={source}
@@ -571,7 +575,7 @@ export function PolicyLimitFields({
           onInvalidDraftChange={(draft) => onInvalidLimitDraftChange("maxStreams", draft)}
         />
         <LimitPolicyField
-          label="Max Transcodes"
+          label="Max. Transkodierungen"
           value={state.maxTranscodes}
           onValueChange={(maxTranscodes) => onChange({ ...state, maxTranscodes })}
           source={source}
@@ -580,7 +584,7 @@ export function PolicyLimitFields({
           onInvalidDraftChange={(draft) => onInvalidLimitDraftChange("maxTranscodes", draft)}
         />
         <StreamBitratePolicyField
-          label="Max remote stream bitrate"
+          label="Max. Bitrate extern"
           value={state.maxRemoteStreamBitrateKbps}
           onValueChange={(maxRemoteStreamBitrateKbps) =>
             onChange({ ...state, maxRemoteStreamBitrateKbps })
@@ -594,7 +598,7 @@ export function PolicyLimitFields({
           }
         />
         <StreamBitratePolicyField
-          label="Max local stream bitrate"
+          label="Max. Bitrate lokal"
           value={state.maxLocalStreamBitrateKbps}
           onValueChange={(maxLocalStreamBitrateKbps) =>
             onChange({ ...state, maxLocalStreamBitrateKbps })
@@ -610,7 +614,7 @@ export function PolicyLimitFields({
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         <BooleanPolicyRow
-          label="Video Transcoding"
+          label="Video-Transkodierung"
           value={state.transcodeAllowed}
           onValueChange={(transcodeAllowed) => onChange({ ...state, transcodeAllowed })}
           source={source}
@@ -618,8 +622,8 @@ export function PolicyLimitFields({
           disabled={disabled}
         />
         <BooleanPolicyRow
-          label="Audio Transcoding"
-          description="Audio conversion without video encoding."
+          label="Audio-Transkodierung"
+          description="Tonumwandlung ohne Video-Kodierung."
           value={state.audioTranscodeAllowed}
           onValueChange={(audioTranscodeAllowed) => onChange({ ...state, audioTranscodeAllowed })}
           source={source}
@@ -628,7 +632,7 @@ export function PolicyLimitFields({
         />
       </div>
       <div className="space-y-1">
-        <Label htmlFor={qualityId}>Max Playback Quality</Label>
+        <Label htmlFor={qualityId}>Max. Wiedergabequalität</Label>
         <Select
           disabled={disabled}
           value={qualityValue}
@@ -668,7 +672,7 @@ export function PolicyLimitFields({
         </p>
       </div>
       <LimitPolicyField
-        label="Max Profiles"
+        label="Max. Profile"
         min={1}
         value={state.maxProfiles}
         onValueChange={(maxProfiles) => onChange({ ...state, maxProfiles })}

@@ -329,6 +329,7 @@ func TestGetImagesFingerprintChangesWhenFileIsReplaced(t *testing.T) {
 // With poster.jpg and a stray Poster.JPG side by side, the documented
 // spelling wins, as it did before names matched ignoring case.
 func TestGetImagesPrefersExactSpelling(t *testing.T) {
+	skipIfCaseInsensitiveFS(t)
 	dir := t.TempDir()
 	moviePath := filepath.Join(dir, "Film.mkv")
 	writeImageFile(t, moviePath)

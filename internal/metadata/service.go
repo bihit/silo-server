@@ -24,6 +24,7 @@ import (
 	"github.com/Silo-Server/silo-server/internal/metadata/showstatus"
 	"github.com/Silo-Server/silo-server/internal/models"
 	"github.com/Silo-Server/silo-server/internal/naming"
+	"github.com/Silo-Server/silo-server/internal/pathscope"
 	"github.com/Silo-Server/silo-server/internal/scanner"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -8960,7 +8961,7 @@ func (s *MetadataService) repairMatchedDuplicateProviderOwnersByFolderAndPathPre
 	}
 
 	pathPrefix = filepath.Clean(pathPrefix)
-	scopeLike := pathPrefix + "/%"
+	scopeLike := pathscope.PrefixLike(pathPrefix)
 
 	rows, err := s.dbPool.Query(ctx, `
 		WITH source_candidates AS (
@@ -8982,7 +8983,7 @@ func (s *MetadataService) repairMatchedDuplicateProviderOwnersByFolderAndPathPre
 			  AND folders.enabled = true
 			  AND lower(trim(src.status)) = 'matched'
 			  AND mf.missing_since IS NULL
-			  AND (mf.file_path = $2 OR mf.file_path LIKE $3)
+			  AND (mf.file_path = $2 OR mf.file_path LIKE $3 ESCAPE '\')
 			  AND NOT EXISTS (
 				SELECT 1
 				FROM media_item_provider_ids pid

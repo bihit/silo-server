@@ -19,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/Silo-Server/silo-server/internal/config"
@@ -1202,11 +1201,6 @@ func processIsRunning(pid int) bool {
 		return true
 	}
 	return processIsRunningBySignal(pid)
-}
-
-func processIsRunningBySignal(pid int) bool {
-	err := syscall.Kill(pid, 0)
-	return err == nil || errors.Is(err, syscall.EPERM)
 }
 
 func currentProcessToken() string {

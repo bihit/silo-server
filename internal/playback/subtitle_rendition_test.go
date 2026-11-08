@@ -17,7 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -348,7 +347,7 @@ func fakeSubtitleFFprobe(t *testing.T, pts string, gated bool) (ffmpegPath, dir 
 	script := "#!/bin/sh\necho run >> " + filepath.Join(dir, "runs") + "\n"
 	if gated {
 		for _, fifo := range []string{"started", "release"} {
-			if err := syscall.Mkfifo(filepath.Join(dir, fifo), 0o600); err != nil {
+			if err := testMkfifo(filepath.Join(dir, fifo), 0o600); err != nil {
 				t.Skipf("mkfifo: %v", err)
 			}
 		}
@@ -1703,7 +1702,7 @@ func feedSourceThroughFIFO(t *testing.T, path string) (fifo string, release func
 		t.Fatal(err)
 	}
 	pipe := filepath.Join(t.TempDir(), "source.mkv")
-	if err := syscall.Mkfifo(pipe, 0o600); err != nil {
+	if err := testMkfifo(pipe, 0o600); err != nil {
 		t.Skipf("mkfifo: %v", err)
 	}
 	released := make(chan struct{})

@@ -44,10 +44,10 @@ it("opens and retains a generated code on plain HTTP without crypto.randomUUID",
   mocks.useAdminServerSettings.mockReturnValue({ data: undefined });
   mocks.create.mockClear();
   renderTab();
-  fireEvent.click(screen.getByRole("button", { name: "Create Code" }));
-  expect(screen.getByPlaceholderText("e.g. BETA2026")).toHaveValue("1212121212124212");
-  fireEvent.click(screen.getByRole("button", { name: "Create" }));
-  fireEvent.click(screen.getByRole("button", { name: "Create" }));
+  fireEvent.click(screen.getByRole("button", { name: "Code erstellen" }));
+  expect(screen.getByPlaceholderText("z. B. BETA2026")).toHaveValue("1212121212124212");
+  fireEvent.click(screen.getByRole("button", { name: "Erstellen" }));
+  fireEvent.click(screen.getByRole("button", { name: "Erstellen" }));
   expect(getRandomValues).toHaveBeenCalledTimes(1);
   expect(mocks.create).toHaveBeenCalledTimes(2);
   expect(mocks.create.mock.calls[0]?.[0].code).toBe("1212121212124212");

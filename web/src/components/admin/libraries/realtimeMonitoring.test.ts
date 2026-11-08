@@ -26,9 +26,9 @@ function entry(
 
 describe("realtimeMonitoringStatusText", () => {
   it.each([
-    ["inotify", 4812, "Monitoring 4,812 folders (inotify)"],
-    ["fanotify", 1, "Monitoring 1 folder (fanotify)"],
-    ["", 12, "Monitoring 12 folders"],
+    ["inotify", 4812, `${(4812).toLocaleString()} Ordner überwacht (inotify)`],
+    ["fanotify", 1, "1 Ordner überwacht (fanotify)"],
+    ["", 12, "12 Ordner überwacht"],
   ])("counts folders and names the %s backend while monitoring", (backend, directories, text) => {
     expect(realtimeMonitoringStatusText(entry("monitoring", { backend, directories }))).toBe(text);
   });
@@ -42,13 +42,13 @@ describe("realtimeMonitoringStatusText", () => {
           detail: "Changes made outside this FUSE mount aren't seen",
         }),
       ),
-    ).toBe("Monitoring 3 folders (inotify) · Changes made outside this FUSE mount aren't seen");
+    ).toBe("3 Ordner überwacht (inotify) · Changes made outside this FUSE mount aren't seen");
   });
 
   it.each<[LibraryRealtimeMonitoringState, string]>([
-    ["server_disabled", "Turned off server-wide"],
-    ["limit_reached", "Watch limit reached"],
-    ["error", "Error"],
+    ["server_disabled", "Serverweit ausgeschaltet"],
+    ["limit_reached", "Überwachungslimit erreicht"],
+    ["error", "Fehler"],
   ])("labels %s and adds the server's detail", (state, label) => {
     expect(realtimeMonitoringStatusText(entry(state))).toBe(label);
     expect(realtimeMonitoringStatusText(entry(state, { detail: "Because." }))).toBe(
@@ -61,7 +61,7 @@ describe("realtimeMonitoringStatusText", () => {
       state: "paused" as LibraryRealtimeMonitoringState,
       detail: "x",
     });
-    expect(realtimeMonitoringStatusText(unknown)).toBe("Error · x");
+    expect(realtimeMonitoringStatusText(unknown)).toBe("Fehler · x");
   });
 });
 

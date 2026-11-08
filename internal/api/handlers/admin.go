@@ -212,6 +212,10 @@ type AdminHandler struct {
 	// RecWorker is told when an account update changes its profiles' access
 	// scope, so their recommendations are rebuilt. Optional.
 	RecWorker AccountsScopeNotifier
+	// SeriesTMDB, when set, lets the missing-episodes report compare series
+	// with TMDB's season totals. It is set only when an administrator has
+	// configured their own TMDB key.
+	SeriesTMDB SeriesTMDBClient
 	// ProfileAvatars resolves the avatar on admin profile listings the way
 	// the profile endpoints do. Nil leaves uploaded avatars without a URL.
 	ProfileAvatars interface {
@@ -406,6 +410,8 @@ type AdminUserView struct {
 	// BreakGlass is v2-only: the account keeps local password sign-in when
 	// the server turns it off.
 	BreakGlass bool `json:"-"`
+	// AccessExpiresAt is v2-only: when an ordinary account's access ends.
+	AccessExpiresAt *time.Time `json:"-"`
 }
 
 // EffectivePolicyView is the resolved policy block on admin user responses.
@@ -497,6 +503,7 @@ func toAdminUserResponse(u *models.User, group *access.GroupPolicy) AdminUserVie
 		PasswordChangeRequired:     u.PasswordChangeRequired,
 		IsOwner:                    u.IsOwner,
 		BreakGlass:                 u.BreakGlass,
+		AccessExpiresAt:            clonePtr(u.AccessExpiresAt),
 		EffectivePolicy: EffectivePolicyView{
 			LibraryIDs:                 effective.LibraryIDs,
 			MaxPlaybackQuality:         effective.MaxPlaybackQuality,

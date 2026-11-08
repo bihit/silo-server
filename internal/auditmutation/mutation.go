@@ -81,6 +81,7 @@ func UserValues(user *models.User) map[string]any {
 		"requests_allowed": user.RequestsAllowed, "max_profiles": user.MaxProfiles,
 		"local_password_login_enabled": user.LocalPasswordLoginEnabled,
 		"password_change_required":     user.PasswordChangeRequired, "break_glass": user.BreakGlass,
+		"access_expires_at": user.AccessExpiresAt,
 	}
 }
 

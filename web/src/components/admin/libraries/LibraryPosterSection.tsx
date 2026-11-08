@@ -25,7 +25,7 @@ export function LibraryPosterSection({ library }: { library: Library }) {
         {library.poster_url ? (
           <img
             src={library.poster_url}
-            alt={`${library.name} poster`}
+            alt={`Poster von ${library.name}`}
             className="border-border h-14 flex-shrink-0 rounded border object-cover"
             style={{ aspectRatio: "16/9" }}
           />
@@ -52,7 +52,7 @@ export function LibraryPosterSection({ library }: { library: Library }) {
           onClick={() => document.getElementById(fileInputId)?.click()}
           disabled={uploadMutation.isPending}
         >
-          {uploadMutation.isPending ? "..." : library.poster_url ? "Replace" : "Upload"}
+          {uploadMutation.isPending ? "..." : library.poster_url ? "Ersetzen" : "Hochladen"}
         </Button>
         {library.poster_url && (
           <Button
@@ -62,7 +62,7 @@ export function LibraryPosterSection({ library }: { library: Library }) {
             className="text-muted-foreground hover:text-destructive h-8 w-8"
             onClick={() => deleteMutation.mutate(library.id)}
             disabled={deleteMutation.isPending}
-            title="Remove poster"
+            title="Poster entfernen"
           >
             <Trash2 className="h-3 w-3" />
           </Button>

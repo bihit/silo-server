@@ -1,11 +1,11 @@
 import { BookHeadphones, BookMarked, BookOpen, Film, Layers, Podcast, Tv } from "lucide-react";
 
 export const LIBRARY_TYPES = [
-  { value: "movies", label: "Movies", icon: Film },
-  { value: "series", label: "Series", icon: Tv },
-  { value: "mixed", label: "Mixed", icon: Layers },
-  { value: "audiobooks", label: "Audiobooks", icon: BookHeadphones },
-  { value: "ebooks", label: "Ebooks", icon: BookOpen },
+  { value: "movies", label: "Filme", icon: Film },
+  { value: "series", label: "Serien", icon: Tv },
+  { value: "mixed", label: "Gemischt", icon: Layers },
+  { value: "audiobooks", label: "Hörbücher", icon: BookHeadphones },
+  { value: "ebooks", label: "E-Books", icon: BookOpen },
   { value: "manga", label: "Manga", icon: BookMarked },
   { value: "podcasts", label: "Podcasts", icon: Podcast },
 ] as const;

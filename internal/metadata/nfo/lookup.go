@@ -493,7 +493,7 @@ func (l *sidecarLookup) load(path string) (*parsedNFO, error) {
 // open, whose earlier version is still read whole, and the next pass sees
 // the save.
 func readNFOFile(path string) ([]byte, error) {
-	f, err := fspath.OpenFile(path, os.O_RDONLY|syscall.O_NONBLOCK|syscall.O_NOFOLLOW, 0)
+	f, err := openNFONoFollow(path)
 	if errors.Is(err, syscall.ELOOP) {
 		return nil, errNFOReplaced
 	}

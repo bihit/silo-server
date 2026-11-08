@@ -257,6 +257,7 @@ export const v2Operations = {
   "GET /api/v2/admin/sections/capabilities": "getAdminSectionCapabilities",
   "GET /api/v2/admin/sections/order": "getAdminSectionOrder",
   "GET /api/v2/admin/sections/{id}": "getAdminSection",
+  "GET /api/v2/admin/series-gaps": "listAdminSeriesGaps",
   "GET /api/v2/admin/server/status": "getAdminServerStatus",
   "GET /api/v2/admin/sessions": "listAdminPlaybackSessions",
   "GET /api/v2/admin/sessions/capabilities": "getAdminPlaybackSessionCapabilities",

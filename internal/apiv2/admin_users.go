@@ -59,6 +59,7 @@ type AdminUser struct {
 	CreatedAt                  Instant         `json:"created_at" example:"2026-01-02T03:04:05.678Z"`
 	UpdatedAt                  Instant         `json:"updated_at" example:"2026-01-02T03:04:05.678Z"`
 	LastActiveAt               NullableInstant `json:"last_active_at" doc:"Most recent recorded activity; null when the account has none" example:"2026-01-02T03:04:05.678Z"`
+	AccessExpiresAt            NullableInstant `json:"access_expires_at" doc:"When the account's access ends: once it has passed, the server disables the account. null when it does not expire. Only ordinary accounts carry one" example:"2026-12-31T23:59:59.000Z"`
 }
 
 // AdminUserListInput is the listAdminUsers query.
@@ -200,5 +201,6 @@ func adminUserFromView(v handlers.AdminUserView) AdminUser {
 	if v.LastActiveAt != nil {
 		out.LastActiveAt = NullableInstant{Valid: true, Time: NewInstant(*v.LastActiveAt)}
 	}
+	out.AccessExpiresAt = nullableInstantOf(v.AccessExpiresAt)
 	return out
 }

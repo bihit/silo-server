@@ -1740,6 +1740,16 @@
       "AdminAccountCreateBody": {
         "additionalProperties": false,
         "properties": {
+          "access_expires_at": {
+            "description": "When an ordinary account's access ends; once it has passed, the server disables the account. null removes the end date. An admin account cannot have one",
+            "format": "date-time",
+            "pattern": "^(?:[1-9][0-9]{3}|0[1-9][0-9]{2}|00[1-9][0-9]|000[2-9])-",
+            "patternDescription": "a non-zero RFC 3339 instant",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "access_group_id": {
             "description": "Opaque identifier",
             "examples": [
@@ -2014,6 +2024,16 @@
       "AdminAccountUpdateBody": {
         "additionalProperties": false,
         "properties": {
+          "access_expires_at": {
+            "description": "When an ordinary account's access ends; once it has passed, the server disables the account. null removes the end date. An admin account cannot have one",
+            "format": "date-time",
+            "pattern": "^(?:[1-9][0-9]{3}|0[1-9][0-9]{2}|00[1-9][0-9]|000[2-9])-",
+            "patternDescription": "a non-zero RFC 3339 instant",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "access_group_id": {
             "description": "Opaque identifier",
             "examples": [
@@ -20876,6 +20896,200 @@
         ],
         "type": "object"
       },
+      "AdminSeriesGap": {
+        "additionalProperties": false,
+        "properties": {
+          "libraries": {
+            "description": "Names of the libraries holding the series",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "missing_seasons": {
+            "description": "Regular seasons without any present episode",
+            "items": {
+              "$ref": "#/components/schemas/AdminSeriesMissingSeason"
+            },
+            "type": "array"
+          },
+          "present_seasons": {
+            "description": "Regular seasons with at least one present episode",
+            "format": "int64",
+            "type": "integer"
+          },
+          "seasons": {
+            "description": "Seasons with missing episodes",
+            "items": {
+              "$ref": "#/components/schemas/AdminSeriesGapSeason"
+            },
+            "type": "array"
+          },
+          "series_id": {
+            "description": "Series content ID",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "tmdb_checked": {
+            "description": "TMDB's season totals were applied",
+            "type": "boolean"
+          },
+          "tmdb_mismatch": {
+            "description": "Local numbering does not follow TMDB's seasons",
+            "type": "boolean"
+          },
+          "year": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "series_id",
+          "title",
+          "libraries",
+          "present_seasons",
+          "missing_seasons",
+          "seasons",
+          "tmdb_checked",
+          "tmdb_mismatch"
+        ],
+        "type": "object"
+      },
+      "AdminSeriesGapSeason": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_episodes": {
+            "description": "Episodes of the season aired on TMDB; absent when TMDB was not consulted",
+            "format": "int64",
+            "type": "integer"
+          },
+          "first_episode": {
+            "description": "Number the season is counted from: 1, or the first present number under absolute numbering",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_episode": {
+            "description": "Number the season is checked up to: the highest present episode, or TMDB's last aired one when higher",
+            "format": "int64",
+            "type": "integer"
+          },
+          "missing": {
+            "description": "Missing episode numbers, at most 500",
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "missing_count": {
+            "description": "Numbers missing between first_episode and last_episode",
+            "format": "int64",
+            "type": "integer"
+          },
+          "present": {
+            "description": "Distinct episode numbers present on disk",
+            "format": "int64",
+            "type": "integer"
+          },
+          "season_number": {
+            "description": "Season number",
+            "format": "int64",
+            "type": "integer"
+          },
+          "suspect": {
+            "description": "More numbers missing between present episodes than present; usually a misnumbered file",
+            "type": "boolean"
+          },
+          "tmdb_mismatch": {
+            "description": "Present numbers run past TMDB's aired total",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "season_number",
+          "present",
+          "first_episode",
+          "last_episode",
+          "missing_count",
+          "missing",
+          "suspect",
+          "tmdb_mismatch"
+        ],
+        "type": "object"
+      },
+      "AdminSeriesGapsReport": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "description": "Series with missing episodes; empty, never null",
+            "items": {
+              "$ref": "#/components/schemas/AdminSeriesGap"
+            },
+            "type": "array"
+          },
+          "tmdb": {
+            "$ref": "#/components/schemas/AdminSeriesGapsTMDB",
+            "description": "Progress of the background TMDB comparison"
+          }
+        },
+        "required": [
+          "items",
+          "tmdb"
+        ],
+        "type": "object"
+      },
+      "AdminSeriesGapsTMDB": {
+        "additionalProperties": false,
+        "properties": {
+          "checked": {
+            "description": "Series with current TMDB season totals",
+            "format": "int64",
+            "type": "integer"
+          },
+          "enabled": {
+            "description": "An administrator's TMDB key drives the comparison",
+            "type": "boolean"
+          },
+          "failed": {
+            "description": "Series TMDB could not match",
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Series with present episodes",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "enabled",
+          "checked",
+          "failed",
+          "total"
+        ],
+        "type": "object"
+      },
+      "AdminSeriesMissingSeason": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_episodes": {
+            "description": "Episodes of the season aired on TMDB",
+            "format": "int64",
+            "type": "integer"
+          },
+          "season_number": {
+            "description": "Season number",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "season_number"
+        ],
+        "type": "object"
+      },
       "AdminServerHealth": {
         "additionalProperties": false,
         "properties": {
@@ -23759,6 +23973,19 @@
       "AdminUser": {
         "additionalProperties": false,
         "properties": {
+          "access_expires_at": {
+            "description": "When the account's access ends: once it has passed, the server disables the account. null when it does not expire. Only ordinary accounts carry one",
+            "examples": [
+              "2026-12-31T23:59:59.000Z"
+            ],
+            "format": "date-time",
+            "pattern": "^(?:[1-9][0-9]{3}|0[1-9][0-9]{2}|00[1-9][0-9]|000[2-9])-",
+            "patternDescription": "a non-zero RFC 3339 instant",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "access_group_id": {
             "description": "The access group the account belongs to; null when none",
             "examples": [
@@ -24055,7 +24282,8 @@
           "effective_policy",
           "created_at",
           "updated_at",
-          "last_active_at"
+          "last_active_at",
+          "access_expires_at"
         ],
         "type": "object"
       },
@@ -125767,6 +125995,148 @@
         "x-silo-demo-restricted": true,
         "x-silo-guarded": true,
         "x-silo-retry-safety": "non_retryable",
+        "x-silo-service-backed": true
+      }
+    },
+    "/api/v2/admin/series-gaps": {
+      "get": {
+        "operationId": "listAdminSeriesGaps",
+        "parameters": [
+          {
+            "description": "Optional. When present, it must name the authenticated account's primary profile; an absent header is accepted.",
+            "in": "header",
+            "name": "X-Profile-Id",
+            "schema": {
+              "examples": [
+                "1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Verification proof for a PIN-locked profile, issued by POST /api/v2/profiles/{id}/verify-pin; required only when the declared profile is locked",
+            "in": "header",
+            "name": "X-Profile-Token",
+            "schema": {
+              "examples": [
+                "pvt_5f3a9c1e7b2d4e8fa0c6"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSeriesGapsReport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "406": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List series with missing episodes, from local numbering gaps and, where compared, TMDB's aired season totals.",
+        "tags": [
+          "admin-catalog"
+        ],
+        "x-silo-class": "acting_admin",
         "x-silo-service-backed": true
       }
     },

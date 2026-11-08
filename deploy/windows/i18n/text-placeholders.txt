@@ -1,0 +1,86 @@
+# Short patterns whose placeholder may be any text (a name, a library, a
+# duration). Only verbs and phrases that do not start or end media titles.
+# Everything else short gets a digits-only placeholder.
+{0} ago
+Edit {0}
+Delete {0}
+Deselect {0}
+Upload {0}
+Remove {0}
+Rename {0}
+Clear {0}
+Apply {0}
+Unlink {0}
+Expand {0}
+Collapse {0}
+{0} menu
+{0} carousel
+{0} preview
+Lists for {0}
+More for {0}
+Explore all {0}
+Details for {0}
+Muted {0}
+Removed {0}
+Added {0}.
+Set {0}.
+{0} added
+{0} sent
+{0} imported
+{0} resumed
+{0} code copied
+Sign out {0}
+Connect {0}
+Connected {0}
+Disconnected {0}
+Continue to {0}
+Continue as {0}
+Continue with {0}
+Adjust {0}
+Enable {0}
+Stream location: {0}
+Server default: {0}
+Language: {0}
+Genre: {0}
+Country: {0}
+Studio: {0}
+Network: {0}
+Actor: {0}
+Author: {0}
+Director: {0}
+Narrator: {0}
+Producer: {0}
+Writer: {0}
+Series: {0}
+Rated: {0}
+Match: {0}
+Audio: {0}
+Subtitles: {0}
+Behavior: {0}
+Default: {0}
+Forced subtitles: {0}
+Missing: {0}
+Disabled: {0}
+Custom: {0}
+Auto: {0}
+Current profile: {0}
+Narrated by {0}
+Week of {0}
+Next: {0}
+Continue · {0}
+Resume · {0}
+Also by {0}
+Suggested to {0}
+Suggested {0}
+Waiting for {0}
+Host: {0} · {1}
+Library {0}
+Unknown language ({0})
+Device on {0}
+Last seen {0}.
+Last delivered {0}
+Last checked {0}
+Last sign-in {0}
+Synced {0}
+Back to page 1
+Results for "{0}"

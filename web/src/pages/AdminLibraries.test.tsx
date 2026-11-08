@@ -130,7 +130,7 @@ const libraryRootsResult = (roots: unknown[]) => ({
 });
 
 // The Ambiguous Roots header's text is the title, description, and count indicator.
-const ambiguousRootsHeader = () => screen.getByRole("button", { name: /Ambiguous Roots/ });
+const ambiguousRootsHeader = () => screen.getByRole("button", { name: /Mehrdeutige Ordner/ });
 
 describe("AdminLibraries", () => {
   afterEach(cleanup);
@@ -237,9 +237,9 @@ describe("AdminLibraries", () => {
       });
       renderInteractivePage();
       const user = userEvent.setup();
-      await user.click(screen.getByRole("button", { name: /Add Library/ }));
-      await user.click(screen.getByRole("tab", { name: "Advanced" }));
-      const previewSwitch = screen.queryByRole("switch", { name: "Generate seek previews" });
+      await user.click(screen.getByRole("button", { name: /Bibliothek hinzufügen/ }));
+      await user.click(screen.getByRole("tab", { name: "Erweitert" }));
+      const previewSwitch = screen.queryByRole("switch", { name: "Spul-Vorschaubilder erzeugen" });
       if (visible) {
         expect(previewSwitch).toBeInTheDocument();
         if (enabled) expect(previewSwitch).toBeEnabled();
@@ -271,10 +271,10 @@ describe("AdminLibraries", () => {
 
     const markup = renderPage();
 
-    expect(markup).toContain("Partial scan");
+    expect(markup).toContain("Unvollständiger Scan");
     expect(markup).toContain("Scan could not read or resolve 3 paths");
-    expect(markup).not.toContain("Confirm Cleanup");
-    expect(markup).not.toContain('title="Confirm cleanup for missing or empty roots"');
+    expect(markup).not.toContain("Bereinigung bestätigen");
+    expect(markup).not.toContain('title="Bereinigung für fehlende oder leere Ordner bestätigen"');
   });
 
   it("renders an error state when Ambiguous Roots fails to load", () => {
@@ -291,7 +291,7 @@ describe("AdminLibraries", () => {
     fireEvent.click(ambiguousRootsHeader());
 
     expect(
-      screen.getByText("Failed to load ambiguous roots for this library."),
+      screen.getByText("Mehrdeutige Ordner dieser Bibliothek konnten nicht geladen werden."),
     ).toBeInTheDocument();
   });
 
@@ -306,7 +306,9 @@ describe("AdminLibraries", () => {
 
     expect(ambiguousRootsHeader()).toHaveTextContent("1");
     expect(screen.getByText("/media/movies/Inception (2010)")).toBeInTheDocument();
-    expect(screen.queryByText("Failed to load ambiguous roots for this library.")).toBeNull();
+    expect(
+      screen.queryByText("Mehrdeutige Ordner dieser Bibliothek konnten nicht geladen werden."),
+    ).toBeNull();
   });
 
   it("settles while libraries are still loading", () => {
@@ -328,7 +330,7 @@ describe("AdminLibraries", () => {
     // Any unrelated update (another query resolving) re-renders the page once.
     view.rerender(page(client));
 
-    expect(screen.getByText("Loading libraries...")).toBeInTheDocument();
+    expect(screen.getByText("Bibliotheken werden geladen …")).toBeInTheDocument();
     expect(mocks.useAdminLibraries).toHaveBeenCalledTimes(1);
   });
 
@@ -359,7 +361,7 @@ describe("AdminLibraries", () => {
       mocks.useSkippedLibraryRoots.mockReturnValue(infinite(undefined));
       mocks.useStaleMediaIDs.mockReturnValue(infinite(undefined));
       renderInteractivePage();
-      for (const name of [/Troubleshooting/, /Stale External IDs/]) {
+      for (const name of [/Fehlersuche/, /Veraltete externe IDs/]) {
         expect(within(header(name)).getByText("Count not loaded")).toBeDefined();
         expect(within(header(name)).queryByText("0")).toBeNull();
         fireEvent.click(header(name));
@@ -374,7 +376,7 @@ describe("AdminLibraries", () => {
       mocks.useStaleMediaIDs.mockReturnValue(
         infinite({ pages: [{ staleIDs: [], nextCursor: undefined, total: 0 }] }),
       );
-      for (const name of [/Troubleshooting/, /Stale External IDs/]) {
+      for (const name of [/Fehlersuche/, /Veraltete externe IDs/]) {
         fireEvent.click(header(name));
         expect(within(header(name)).getByText("0")).toBeDefined();
         expect(within(header(name)).queryByText("Count not loaded")).toBeNull();
@@ -398,19 +400,19 @@ describe("AdminLibraries", () => {
           { hasNextPage: true },
         ),
       );
-      fireEvent.click(header(/Troubleshooting/));
-      fireEvent.click(header(/Stale External IDs/));
+      fireEvent.click(header(/Fehlersuche/));
+      fireEvent.click(header(/Veraltete externe IDs/));
 
-      expect(within(header(/Troubleshooting/)).getByText("1")).toBeDefined();
+      expect(within(header(/Fehlersuche/)).getByText("1")).toBeDefined();
       expect(
         screen.getByText(
-          "Roots with no provider IDs in the folder name or, for movies, in a file name.",
+          "Ordner ohne Anbieter-IDs im Ordnernamen oder, bei Filmen, im Dateinamen.",
         ),
       ).toBeDefined();
-      expect(within(header(/Stale External IDs/)).getByText("120")).toBeDefined();
-      fireEvent.click(header(/Stale External IDs/));
-      expect(within(header(/Stale External IDs/)).getByText("120")).toBeDefined();
-      expect(within(header(/Stale External IDs/)).queryByText("3")).toBeNull();
+      expect(within(header(/Veraltete externe IDs/)).getByText("120")).toBeDefined();
+      fireEvent.click(header(/Veraltete externe IDs/));
+      expect(within(header(/Veraltete externe IDs/)).getByText("120")).toBeDefined();
+      expect(within(header(/Veraltete externe IDs/)).queryByText("3")).toBeNull();
     });
   });
 
@@ -425,12 +427,12 @@ describe("AdminLibraries", () => {
     mocks.useStaleMediaIDs.mockReturnValue({ ...emptyResult, data: undefined, isFetched: false });
     const client = newTestQueryClient();
     const view = render(page(client));
-    fireEvent.click(screen.getByRole("button", { name: /Stale External IDs/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Veraltete externe IDs/ }));
     expect(mocks.useStaleMediaIDs).toHaveBeenLastCalledWith({ enabled: true, search: "" });
     mocks.useStaleMediaIDs.mockReturnValue(emptyResult);
     view.rerender(page(client));
-    fireEvent.click(screen.getByRole("button", { name: /Stale External IDs/ }));
-    const reopen = screen.getByRole("button", { name: /Stale External IDs/ });
+    fireEvent.click(screen.getByRole("button", { name: /Veraltete externe IDs/ }));
+    const reopen = screen.getByRole("button", { name: /Veraltete externe IDs/ });
     expect(reopen.getAttribute("aria-expanded")).toBe("false");
     mocks.useStaleMediaIDs.mockReturnValue({
       ...emptyResult,
@@ -456,8 +458,8 @@ describe("AdminLibraries", () => {
       unmatchedItemsResult(ignoredView ? [ignored] : []),
     );
     renderInteractivePage();
-    fireEvent.click(screen.getByText("Unmatched Items"));
-    expect(screen.getByText("No items are awaiting a match.")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Nicht zugeordnete Einträge"));
+    expect(screen.getByText("Keine Einträge warten auf eine Zuordnung.")).toBeInTheDocument();
   });
 
   it.each(["search", "first"])("cancels a pending Last traversal after %s", async (action) => {
@@ -491,18 +493,20 @@ describe("AdminLibraries", () => {
       fetchNextPage,
     });
     renderInteractivePage();
-    fireEvent.click(screen.getByText("Unmatched Items"));
-    fireEvent.click(screen.getByTitle("Next page"));
+    fireEvent.click(screen.getByText("Nicht zugeordnete Einträge"));
+    fireEvent.click(screen.getByTitle("Nächste Seite"));
     expect(screen.getByText("Page 1")).toBeDefined();
-    fireEvent.click(screen.getByTitle("Last page"));
+    fireEvent.click(screen.getByTitle("Letzte Seite"));
     expect(fetchNextPage).toHaveBeenCalledTimes(1);
     if (action === "search") {
       fireEvent.change(
-        screen.getByPlaceholderText("Search all unmatched items by title, library, or type..."),
+        screen.getByPlaceholderText(
+          "Alle nicht zugeordneten Einträge nach Titel, Bibliothek oder Typ suchen …",
+        ),
         { target: { value: "new search" } },
       );
     } else {
-      fireEvent.click(screen.getByTitle("First page"));
+      fireEvent.click(screen.getByTitle("Erste Seite"));
     }
     await act(async () => {
       complete({ data: { pages: pages.concat(pages.slice(0, 1)) }, hasNextPage: true });

@@ -67,13 +67,13 @@ export default function InviteCodesTab() {
   async function handleCopy(text: string) {
     try {
       await copyTextToClipboard(text);
-      toast.success("Copied to clipboard");
+      toast.success("In die Zwischenablage kopiert");
     } catch {
-      toast.error("Failed to copy to clipboard");
+      toast.error("Kopieren in die Zwischenablage fehlgeschlagen");
     }
   }
 
-  if (isLoading) return <div>Loading invite codes...</div>;
+  if (isLoading) return <div>Einladungscodes werden geladen …</div>;
 
   return (
     <div className="space-y-6">
@@ -82,9 +82,9 @@ export default function InviteCodesTab() {
         onOpenChange={(open) => {
           if (!open) setConfirmDeleteCode(null);
         }}
-        title="Delete invite code"
-        description={`Delete invite code "${confirmDeleteCode?.code}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title="Einladungscode löschen"
+        description={`Einladungscode „${confirmDeleteCode?.code}“ löschen? Das kann nicht rückgängig gemacht werden.`}
+        confirmLabel="Löschen"
         variant="destructive"
         onConfirm={() => {
           if (confirmDeleteCode) deleteCode.mutate(confirmDeleteCode.id);
@@ -100,10 +100,10 @@ export default function InviteCodesTab() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Top Up Invite Code</DialogTitle>
+            <DialogTitle>Einladungscode aufstocken</DialogTitle>
             <DialogDescription>
-              Add extra uses to {topUpCode?.code}. Current usage is {topUpCode?.use_count} /{" "}
-              {topUpCode?.max_uses}.
+              Zusätzliche Nutzungen für {topUpCode?.code} hinzufügen. Aktuell genutzt:{" "}
+              {topUpCode?.use_count} / {topUpCode?.max_uses}.
             </DialogDescription>
           </DialogHeader>
           {topUpCode && <TopUpInviteCodeForm code={topUpCode} onClose={() => setTopUpCode(null)} />}
@@ -114,12 +114,12 @@ export default function InviteCodesTab() {
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
-              <Plus className="mr-1 h-4 w-4" /> Create Code
+              <Plus className="mr-1 h-4 w-4" /> Code erstellen
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Invite Code</DialogTitle>
+              <DialogTitle>Einladungscode erstellen</DialogTitle>
             </DialogHeader>
             <CreateInviteCodeForm onClose={() => setCreateOpen(false)} />
           </DialogContent>
@@ -129,12 +129,12 @@ export default function InviteCodesTab() {
       {serverSettings !== undefined &&
         (signupsEnabled ? (
           <p className="text-muted-foreground text-sm">
-            Codes only work while public signups are on.{" "}
+            Codes funktionieren nur, solange die öffentliche Registrierung an ist.{" "}
             <Link
               to="/admin/settings/sign-in"
               className="text-foreground inline-flex items-center gap-1 font-medium hover:underline"
             >
-              Public signups setting
+              Einstellung „Öffentliche Registrierung“
               <ArrowRight className="h-3 w-3" aria-hidden="true" />
             </Link>
           </p>
@@ -142,13 +142,13 @@ export default function InviteCodesTab() {
           <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
             <p className="text-[13px] leading-relaxed">
-              <span className="font-medium text-amber-500">Public signups are off</span> — these
-              codes won't work until you enable them.{" "}
+              <span className="font-medium text-amber-500">Öffentliche Registrierung ist aus</span>{" "}
+              – diese Codes funktionieren erst, wenn du sie einschaltest.{" "}
               <Link
                 to="/admin/settings/sign-in"
                 className="text-foreground inline-flex items-center gap-1 font-medium hover:underline"
               >
-                Public signups setting
+                Einstellung „Öffentliche Registrierung“
                 <ArrowRight className="h-3 w-3" aria-hidden="true" />
               </Link>
             </p>
@@ -157,25 +157,26 @@ export default function InviteCodesTab() {
 
       {isError && (
         <div role="alert">
-          Unable to load invite codes. <Button onClick={() => void refetch()}>Retry</Button>
+          Einladungscodes konnten nicht geladen werden.{" "}
+          <Button onClick={() => void refetch()}>Erneut versuchen</Button>
         </div>
       )}
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Code</TableHead>
-            <TableHead>Label</TableHead>
-            <TableHead>Usage</TableHead>
+            <TableHead>Bezeichnung</TableHead>
+            <TableHead>Nutzung</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead>Erstellt</TableHead>
+            <TableHead className="w-32">Aktionen</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {codes.length === 0 && (
             <TableRow>
               <TableCell colSpan={6} className="text-muted-foreground text-center">
-                No invite codes yet. Create one to get started.
+                Noch keine Einladungscodes. Erstelle einen, um loszulegen.
               </TableCell>
             </TableRow>
           )}
@@ -208,7 +209,7 @@ export default function InviteCodesTab() {
                 <div className="flex items-center gap-2">
                   <Switch checked={code.enabled} onCheckedChange={() => handleToggleCode(code)} />
                   <Badge variant={code.enabled ? "outline" : "secondary"}>
-                    {code.enabled ? "Active" : "Disabled"}
+                    {code.enabled ? "Aktiv" : "Deaktiviert"}
                   </Badge>
                 </div>
               </TableCell>
@@ -222,7 +223,7 @@ export default function InviteCodesTab() {
                     size="icon"
                     className="h-7 w-7"
                     onClick={() => setTopUpCode(code)}
-                    aria-label={`Top up invite code ${code.code}`}
+                    aria-label={`Einladungscode ${code.code} aufstocken`}
                   >
                     <PlusCircle className="h-3 w-3" />
                   </Button>
@@ -231,7 +232,7 @@ export default function InviteCodesTab() {
                     size="icon"
                     className="h-7 w-7"
                     onClick={() => handleDelete(code)}
-                    aria-label={`Delete invite code ${code.code}`}
+                    aria-label={`Einladungscode ${code.code} löschen`}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -243,7 +244,7 @@ export default function InviteCodesTab() {
       </Table>
       {hasNextPage && (
         <Button disabled={isFetchingNextPage} onClick={() => void fetchNextPage()}>
-          Load more
+          Mehr laden
         </Button>
       )}
     </div>
@@ -260,7 +261,7 @@ function CreateInviteCodeForm({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     const max = parseInt(maxUses, 10);
     if (isNaN(max) || max <= 0) {
-      toast.error("Max uses must be a positive number");
+      toast.error("Die maximale Nutzung muss eine positive Zahl sein");
       return;
     }
     createMutation.mutate({ code, label, max_uses: max }, { onSuccess: onClose });
@@ -274,19 +275,19 @@ function CreateInviteCodeForm({ onClose }: { onClose: () => void }) {
           value={code}
           required
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="e.g. BETA2026"
+          placeholder="z. B. BETA2026"
         />
       </div>
       <div className="space-y-2">
-        <Label>Label</Label>
+        <Label>Bezeichnung</Label>
         <Input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="e.g. Beta testers"
+          placeholder="z. B. Beta-Tester"
         />
       </div>
       <div className="space-y-2">
-        <Label>Max uses</Label>
+        <Label>Max. Nutzungen</Label>
         <Input
           type="number"
           min="1"
@@ -296,7 +297,7 @@ function CreateInviteCodeForm({ onClose }: { onClose: () => void }) {
         />
       </div>
       <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-        {createMutation.isPending ? "Creating..." : "Create"}
+        {createMutation.isPending ? "Wird erstellt …" : "Erstellen"}
       </Button>
     </form>
   );
@@ -310,7 +311,7 @@ function TopUpInviteCodeForm({ code, onClose }: { code: InviteCode; onClose: () 
     e.preventDefault();
     const amount = parseInt(additionalUses, 10);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Additional uses must be a positive number");
+      toast.error("Zusätzliche Nutzungen müssen eine positive Zahl sein");
       return;
     }
 
@@ -323,7 +324,7 @@ function TopUpInviteCodeForm({ code, onClose }: { code: InviteCode; onClose: () 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Additional uses</Label>
+        <Label>Zusätzliche Nutzungen</Label>
         <Input
           type="number"
           min="1"
@@ -333,7 +334,7 @@ function TopUpInviteCodeForm({ code, onClose }: { code: InviteCode; onClose: () 
         />
       </div>
       <Button type="submit" className="w-full" disabled={topUpMutation.isPending}>
-        {topUpMutation.isPending ? "Adding..." : "Add Uses"}
+        {topUpMutation.isPending ? "Wird hinzugefügt …" : "Nutzungen hinzufügen"}
       </Button>
     </form>
   );

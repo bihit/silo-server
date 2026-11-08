@@ -1,0 +1,706 @@
+# Strings missing.js should not report: identifiers, class names, brand names,
+# and text that is already German in this build. One per line.
+!text-[var(--popover-foreground)]
+(transfer {0}, primaries {1}).
+, shared.moveToTop, shared.moveToBottom,
+12 / 12A / FSK 12
+15 / MA 15+
+16 / FSK 16
+1px solid {0}55
+2D canvas is unavailable
+6 / FSK 6
+AV1
+Abgelaufen
+Abo aktiv
+Alle Bibliotheken
+Ambient Immersion
+America/New_York
+Android
+Android TV
+Apple TV
+Array
+Atmos
+Audio track {0} is not the {1} track the plan selected.
+Audio-Transkodierung
+Badge labels, tiny captions
+Body text, descriptions
+Borders, dividers, and backgrounds are minimal and low-contrast.
+Bottts Neutral
+Chrome
+Cinematic Darkness
+Cinematic display titles
+Clear Hierarchy
+Common Sense
+Content is King
+DV HDR10
+Deep, dark surfaces create a theater-like atmosphere. Multiple
+Discovery-First Layout
+Dolby Vision {0}
+Edge
+Emby
+Erlaubt
+FFmpeg could not allocate a packet
+FFmpeg could not open a {0} decoder
+Feature titles
+Firefox
+Fluid Motion
+Full-bleed cinematic display (desktop, short titles)
+G / TV-G / U
+Geerbt
+Gib eine ganze Zahl{0}
+Glass Harbor
+Hero titles (desktop)
+Hero titles (mobile)
+Horizontal scroll rows are the primary discovery pattern. Users
+IMDb ID
+Identicon
+Immersion Levels
+Information density adapts to the viewport. Desktop shows
+Information importance is conveyed through size, weight, and
+JF
+Jellyfin
+Kein Abo
+Large cinematic titles (desktop)
+Linux
+Läuft bald ab
+Max. Bitrate extern
+Max. Bitrate lokal
+Max. Profile
+Max. Streams
+Max. Transkodierungen
+Max. Wiedergabequalität
+Media artwork and imagery are the primary visual elements. UI chrome
+Medienwünsche
+Metadata (year, rating, duration)
+Nav items, body small, table cells
+Neue Filme und Serien anfragen, wenn Wünsche aktiviert sind.
+Nicht erlaubt
+No WebGPU adapter
+No decoder configuration for {0}.
+Northern Lights
+Only a software WebGPU adapter is available
+Opera
+Opus
+PG / TV-PG / TV-Y7
+PG-13 / TV-14
+Page titles
+Pixel Art Neutral
+Plex
+Promise
+R / TV-MA / NC-17 / 18
+Reading {0} failed: {1}
+Realtime events provider closed before job {0} finished
+Realtime events provider is not mounted
+Responsive Density
+Root element #root not found
+Safari
+Section headers, card titles
+Section hero titles
+Session header {0} must be supplied through the session client.
+Silo
+Silo Web
+Subtle Chrome
+TMDB ID
+TVDB ID
+The 2D canvas cannot present uploaded planes.
+The HDR presenter could not be built: {0}
+The Long Coast
+The UI adapts its density and chrome based on how deeply a user is
+The UI should feel alive with the content it displays. Featured
+This browser cannot map a hardware-decoded HDR frame for an SDR screen.
+TimeRanges index out of bounds
+Tonumwandlung ohne Video-Kodierung.
+Transitions are smooth and purposeful. Elements fade, slide,
+Transkodierte Downloads
+Unbegrenzt
+User Data Saved
+V2ProblemError
+V2TimeoutError
+V2TransportError
+Verwendet die Qualitätsobergrenze der Zugriffsgruppe.
+Verwendet die Standard-Qualitätsobergrenze des Servers.
+Verwendet die Standard-Qualitätsobergrenze für Admins.
+Video-Transkodierung
+Von der Gruppe geerbt
+Von der Gruppe übernehmen
+Watch playback bar is unavailable outside WatchPlaybackProvider
+Watch playback controller is unavailable outside WatchPlaybackProvider
+Watch playback host is unavailable outside WatchPlaybackProvider
+Watch playback snapshot is unavailable outside WatchPlaybackProvider
+WebGPU canvas context is unavailable
+WebGPU is unavailable
+Windows
+[useASSSubtitles] Failed to fetch {0}:
+[useASSSubtitles] Failed to load fallback font {0}:
+[useASSSubtitles] Failed to load subtitle font bundle {0}:
+[watch-together] not ready for command {0}: {1}
+[{0}] Failed to fetch {1}: {2}
+[{0}] Stream error:
+block {0}
+builtin:{0}
+class ErrorBoundaryInner extends Component
+code:{0}
+collection:library:{0}
+collection:{0}:{1}
+collection{0}
+color-mix(in srgb, {0} 20%, rgba(20,20,30,0.7))
+color-mix(in srgb, {0} 28%, rgba(0,0,0,0.6))
+command belongs to a previous selection
+command not yet executed locally
+command targets another session
+dicebear:{0}:{1}
+downloaded:{0}
+element still seeking
+fraction:{0}
+genre:{0}
+group:{0}
+html, body
+item:{0}
+library:{0}
+mdblist:{0}
+new Map
+no command for the room's playback state
+no media element
+noch {0} Tage
+p, li, blockquote
+person:{0}
+playback session not attached
+playerV2: missing path parameter "{0}" for {1}
+playing through the stream pre-roll
+position {0}s is {1}s from seek target {2}s
+preset:{0}
+provider:{0}
+queryClient.getQueryData
+queryClient.setQueryData
+request:{0}-{1}
+room is not waiting
+room not connected
+section:{0}:{1}
+skeleton:{0}
+timing:{0}:{1}
+token:{0}
+type WithoutLibraries
+unexpected {0}
+useAuth must be used within AuthProvider
+useDateTimeFormatSettings must be used within DateTimeFormatProvider
+usePlayerConfig must be used within PlayerConfigProvider
+useTheme must be used within ThemeProvider
+useWizardContext must be used within WizardProvider
+var(--font-body)
+{0} A new GPU device was not ready in time.
+{0} Bibliotheken
+{0} It could not be replaced: {1}
+{0}cqi
+{0}epoch
+Überschreiben
+POST /api/v2/admin/downloads/preparations/cancel
+POST /api/v2/admin/downloads/preparations/pause
+POST /api/v2/admin/downloads/preparations/resume
+, den Wiedergabeverlauf und gespeicherte Einstellungen. Das kann nicht rückgängig gemacht werden.
+Aktuellen Benutzer neu laden
+Benutzer konnte nicht neu geladen werden.
+Das entfernt das Konto,
+Der Benutzer wurde inzwischen geändert. Bitte vor dem nächsten Versuch neu laden.
+Konto löschen
+Profil
+Stattdessen deaktivieren
+Zum Bestätigen
+das Konto stattdessen. Die Anmeldung wird gesperrt, alles andere bleibt erhalten.
+seine {0} {1}
+Als Benutzer ansehen
+Ansicht als dieser Benutzer konnte nicht gestartet werden.
+linear-gradient(180deg, color-mix(in oklab, {0} 16%, transparent), transparent 70%)
+linear-gradient(90deg, color-mix(in oklab, {0} 8%, transparent), transparent 70%)
+Abbrechen
+Allgemein
+Benenne die Bibliothek und wähle, welche Art von Medien sie enthält.
+Bibliothek bearbeiten
+Bibliothek erstellen
+Bibliothek hinzufügen
+Erweitert
+Lege fest, wie „{0}“ gescannt und zugeordnet wird.
+Lege fest, woher Bilder und Beschreibungen kommen und in welcher Sprache.
+Metadaten
+Optionale Hintergrundverarbeitung für diese Bibliothek.
+Ordner
+Richte eine neue Bibliothek aus Ordnern auf deinem Server ein.
+Silo durchsucht diese Ordner nach Medien und überwacht sie auf Änderungen.
+Wird erstellt …
+Wird gespeichert …
+Abspann-Marken erkennen (nach bestem Bemühen)
+Aktiv
+Anbieter werden geladen …
+Anbieter-Reihenfolge
+Beschreibungen automatisch übersetzen
+Bevorzugte Sprache für Titel, Zusammenfassungen und Bilder, die von Anbietern geladen werden.
+Bibliothekstyp
+Dafür wird ein öffentlicher Asset-Speicher benötigt.
+Deaktivierte Bibliotheken sind beim Stöbern ausgeblendet und werden bei Scans übersprungen.
+Die Echtzeit-Überwachung ist serverweit ausgeschaltet. Einschalten unter
+Diese Bibliothek automatisch scannen, wenn sich ihre Dateien ändern.
+Durchsuchen
+Echtzeit-Überwachung
+Erzeugt die Vorschaubilder, die Player beim Spulen zeigen, im eingerichteten öffentlichen Asset-Speicher. Die Dateien werden im Hintergrund mit niedriger Priorität verarbeitet. Ausschalten löscht die Vorschaubilder dieser Bibliothek.
+Es sind keine Plugins für Metadaten-Anbieter installiert. Installiere eins unter Admin → Plugins, um Bilder und Beschreibungen zu laden.
+Es sind keine Plugins für externe Metadaten-Anbieter installiert. Installiere eins unter Admin → Plugins, um Bilder und Beschreibungen zu laden.
+Haben die Anbieter keine Übersetzung in der Sprache dieser Bibliothek, werden Beschreibungen nach jeder Aktualisierung per KI übersetzt. Dafür muss die KI-Übersetzung von Beschreibungen unter Admin-Einstellungen → AI aktiv sein.
+Intro- und Abspann-Marken erkennen
+Kapitel-Vorschaubilder erzeugen
+Lokale Metadaten (NFO + Bilder)
+Lokale Metadaten kommen immer zuerst. Externe Anbieter werden von oben nach unten abgefragt und ergänzen, was noch fehlt. Einen Anbieter abwählen, um ihn für diese Ebene zu überspringen.
+Metadatensprache
+Ordner entfernen
+Pfad hinzufügen
+Speichert Kapitel-Vorschaubilder im Bildspeicher (lokale Festplatte oder S3). Kapitelmarken und Kapitelmenüs funktionieren auch ohne Vorschaubilder.
+Spul-Vorschaubilder erzeugen
+Sucht in den Filmen dieser Bibliothek nach dem Abspann, anhand eingebetteter Kapitel und des Bildes kurz vor Schluss. Manche Filme bekommen keine Abspann-Marke oder eine, die zu spät beginnt. Dafür muss „Detect credits“ in den Servereinstellungen eingeschaltet sein.
+Trailer- und Extra-Typen
+Typ
+Videotypen, die bei der Aktualisierung von Metadaten-Anbietern geladen werden. Alles abwählen, um externe Trailer für diese Bibliothek abzuschalten.
+Wird der Typ einer bestehenden Bibliothek geändert, kann ein vollständiger neuer Scan nötig sein, damit die Einträge neu zugeordnet werden.
+z. B. Filme
+{0} Filme bekommen nur Abspann-Marken, nach bestem Bemühen. {1}
+Ersetzen
+Hochladen
+Poster entfernen
+Poster von {0}
+Aktualisiert zugeordnete Einträge, die noch nie aktualisiert wurden, denen eine Beschreibung oder Bilder fehlen oder deren letzte Aktualisierung fehlgeschlagen ist.
+Alle Metadaten aktualisieren
+Fehlende Metadaten aktualisieren
+Lädt jeden Eintrag neu von seinen Anbietern, einschließlich Titel, Bilder, Staffeln und Episoden. Große Bibliotheken können Stunden dauern. Gesperrte Felder und Bilder bleiben unverändert.
+Metadaten der Bibliothek aktualisieren
+Wähle, wie viel von
+bei den Metadaten-Anbietern aktualisiert werden soll.
+Auswählen …
+Beschreibungen der Bibliothek übersetzen
+Sprache
+Stoppen
+Wird gestartet …
+Wähle zuerst eine Zielsprache.
+Übersetzt jede Beschreibung und jeden Slogan dieser Bibliothek, einschließlich der Staffel- und Episodenbeschreibungen, die in der gewählten Sprache fehlen. Vorhandene Beschreibungen in dieser Sprache bleiben erhalten. Sonst bekommen Zuschauer Übersetzungen beim Stöbern.
+Ausstehend
+Ausstehende und zurückgestellte Einträge, die noch einem Anbieter zugeordnet werden müssen.
+Bibliothek
+Bibliothek {0}
+Jetzt erneut versuchen
+Keine Details zu wartenden Einträgen.
+Metadaten-Zuordnung
+Punktzahl
+Seite
+Wartet auf erste Zuordnung
+Wartet auf erste Zuordnung: {0}
+Weiter
+Zurück
+Zurückgestellt
+zugeordnet „
+über
+E-Books
+Filme
+Gemischt
+Hörbücher
+Podcasts
+Serien
+Aus
+Bibliothek ist deaktiviert
+Dateisystem nicht unterstützt
+Fehler
+Keine Rückmeldung
+Ordner nicht verfügbar
+Plattform nicht unterstützt
+Serverweit ausgeschaltet
+Wird gestartet
+{0} Ordner überwacht
+Gib der Bibliothek einen Namen.
+body:{0}
+col:{0}
+shelf {0}
+shelf:{0}
+Das Ergebnis konnte nicht bestätigt werden.
+Einladungscode aufgestockt
+Einladungscode erstellt
+Einladungscode gelöscht
+Einladungscode konnte nicht erstellt werden
+Einladungscode konnte nicht gelöscht werden
+Einladungscode konnte nicht geändert werden
+Prüfe die aktuelle maximale Nutzung des Codes, bevor du erneut aufstockst.
+Abbruch angefordert
+Aktualisierung fehlgeschlagen
+Anbieter-Reihenfolge aktualisiert
+Anbieter-Reihenfolge konnte nicht aktualisiert werden
+Auftrag konnte nicht abgebrochen werden
+Bereinigung konnte nicht bestätigt werden
+Bibliothek aktualisiert
+Bibliothek erstellt
+Bibliotheken konnten nicht umsortiert werden
+Bibliotheksposter aktualisiert
+Bibliotheksposter entfernt
+Einhängungsprüfung bestanden
+Einhängungsprüfung fehlgeschlagen
+Einhängungsprüfung hat nicht erreichbare Ordner gefunden
+Eintrag konnte nicht ignoriert werden
+Eintrag konnte nicht wiederhergestellt werden
+Er steht wieder auf der Liste nicht zugeordneter Einträge, und Silo versucht erneut, ihn zuzuordnen.
+GET /api/v2/admin/catalog/import-sources
+GET /api/v2/admin/catalog/local-import-sources
+Löschen der Bibliothek gestartet
+Löschen fehlgeschlagen
+Löschen für den nächsten Scan leerer Ordner bestätigt
+Metadaten-Aktualisierung in Warteschlange
+Ordner-Überschreibung entfernt
+Ordner-Überschreibung gespeichert
+Ordner-Überschreibung konnte nicht entfernt werden
+Ordner-Überschreibung konnte nicht gespeichert werden
+Poster konnte nicht entfernt werden
+Poster konnte nicht hochgeladen werden
+Rückgängig
+Rückgängigmachen fehlgeschlagen
+Rückstand der Metadaten-Zuordnung in Warteschlange gestellt
+Rückstand der Metadaten-Zuordnung konnte nicht neu aufgebaut werden
+Scan fehlgeschlagen
+Silo versucht nicht mehr, ihn zuzuordnen. Du kannst ihn in der Ansicht „Ignoriert“ wiederherstellen.
+Speichern fehlgeschlagen
+Vollständige Metadaten-Aktualisierung in Warteschlange
+Vollständiger Scan aller Bibliotheken gestartet
+{0} ignoriert
+{0} wiederhergestellt
+Abbruch der Scans angefordert
+Scans konnten nicht abgebrochen werden
+Vollständiger Scan gestartet
+Wähle vor dem Scannen ein Administratorprofil.
+Fehlende Episoden
+Serien mit Lücken in der Episodennummerierung.
+Roku
+mappings:{0}
+runs:{0}
+Alle
+Alle Bibliotheken scannen
+Alle nicht zugeordneten Einträge nach Titel, Bibliothek oder Typ suchen …
+Anbieter
+Anbieter-ID
+Ansicht nicht zugeordneter Einträge
+Auflösen
+Beispieldatei
+Bereinigung bestätigen
+Bereinigung für fehlende oder leere Ordner bestätigen
+Bereinigung leerer Ordner bestätigen
+Bestätigen
+Betroffene Dateien
+Bibliothek #{0}
+Bibliothek löschen
+Bibliothek scannen
+Bibliothek wählen
+Bibliotheken
+Bibliotheken werden geladen …
+Bibliotheks-Scans abbrechen
+Bibliotheks-Scans stoppen
+Bibliotheksordner und Scans verwalten. Katalog-Import/-Export findest du jetzt unter Wartung.
+Dateien
+Diesen Eintrag absichtlich nicht zuordnen: Silo versucht es nicht mehr und verschiebt ihn in die Ansicht „Ignoriert“
+Diesen Eintrag zurück auf die Liste nicht zugeordneter Einträge setzen, damit Silo die Zuordnung erneut versucht
+Einhängung prüfen
+Einhängungen prüfen
+Einige Pfade konnten nicht gelesen werden. Starte einen neuen Scan, sobald der Speicher verfügbar ist.
+Eintrag
+Einträge, die keinem Metadaten-Anbieter zugeordnet werden konnten.
+Erkannte Zuordnung für
+Erste Seite
+Erzwungener Titel
+Es werden keine Einträge ignoriert.
+Fehlersuche
+Film
+Grund
+Ignorieren
+Ignoriert
+Ignorierte Einträge nach Titel, Bibliothek oder Typ suchen …
+Jahr
+Katalogwartung
+Keine Einträge warten auf eine Zuordnung.
+Keine ignorierten Einträge passen zu deiner Suche.
+Keine mehrdeutigen Ordner in dieser Bibliothek.
+Keine mehrdeutigen Ordner passen zu deinem Filter.
+Keine nicht zugeordneten Einträge passen zu deiner Suche.
+Leerer Ordner geschützt
+Letzte Seite
+Mehrdeutige Ordner
+Mehrdeutige Ordner dieser Bibliothek konnten nicht geladen werden.
+Mehrdeutige Ordner dieser Bibliothek werden geladen.
+Metadaten neu einlesen
+Metadaten-Aktualisierung abbrechen
+Metadaten-Aktualisierung stoppen
+Nach Pfad, Bibliothek oder Grund filtern …
+Nach Pfad, Titel oder Beispieldatei filtern …
+Nach Titel, Anbieter oder ID filtern …
+Nicht zugeordnete Einträge
+Nie
+Notiz
+Nächste Seite
+Ordner nicht erreichbar
+Ordner ohne Anbieter-IDs im Ordnernamen oder, bei Filmen, im Dateinamen.
+Ordner überschreiben
+Ordnerpfad
+Pfade
+Scan-Warteschlange
+Scanner-Ordner, die sichtbar bleiben, aber nicht automatisch Metadaten zugeordnet bekommen.
+Serie
+Sicherheit
+Titel
+Unvollständiger Scan
+Veraltete externe IDs
+Vorherige Seite
+Wartet auf Zuordnung
+Wartet auf freie Kapazität
+Warum diese Überschreibung existiert
+Weniger anzeigen
+Wiederherstellen
+Wird geladen …
+Ziehen zum Umsortieren
+Zuerst gesehen
+Zuletzt gescannt
+Zuletzt gesehen
+Zuordnen
+mehrdeutigen Ordnern angezeigt
+veraltete IDs angezeigt
+{0} Dateien mit Staffelstruktur
+{0} Ordner
+{0} bearbeiten
+{0} filmartige Dateien
+{0} laufend
+{0} wartend
+{0} zusammengefasste Hüllordner
+{0} Übernahmen aus übergeordneten Ordnern
+Ältere Aktualisierungsaufträge laden
+Überschreibung entfernen
+Überschreibung speichern
+GPU-a1b2c3d4
+Auffällige Nummerierung anzeigen
+Die Liste konnte nicht geladen werden.
+Die Nummerierung auf dem Server passt nicht zu den Staffeln bei TMDB. Fehlende Staffeln laut TMDB werden deshalb nicht angezeigt.
+Fehlende Staffel:
+Fehlende Staffeln:
+Keine Serie passt zum Filter.
+Keine fehlenden Folgen gefunden.
+Mehr Nummern fehlen als vorhanden sind. Meist ist eine Datei falsch nummeriert, z. B. E{0}.
+Neu prüfen
+Nummerierung prüfen
+Nummerierung weicht von TMDB ab
+Serie suchen
+Serien werden geprüft …
+Serien ·
+Serien, bei denen Folgen oder Staffeln fehlen: Lücken zwischen den vorhandenen Episoden und, wo der TMDB-Abgleich gelaufen ist, bereits ausgestrahlte Folgen und Staffeln, die auf dem Server fehlen.
+Staffel
+Staffeln
+Staffeln mit Lücken
+TMDB-Abgleich ist aus. Ohne eigenen TMDB-Schlüssel erkennt Silo nur Lücken zwischen vorhandenen Folgen.
+TMDB-Abgleich läuft im Hintergrund: {0} von {1} Serien geprüft. Die Liste wird vollständiger, je weiter er ist.
+TMDB-Abgleich: alle {0} Serien geprüft.
+Wird geprüft …
+fehlende Folgen
+und {0} weitere
+von {0} laut TMDB
+{0} Folgen
+{0} Serien hat TMDB nicht gefunden.
+· {0} fehlende Staffeln
+Abo
+Abo-Übersicht
+Admin-Konten können keiner Gruppe angehören.
+Alle Gruppen
+Als Benutzer ansehen: {0}
+Bei der ersten Anmeldung ändern lassen
+Benutzer anlegen
+Benutzer bearbeiten
+Benutzer hinzufügen
+Benutzer konnte nicht geladen werden.
+Benutzer konnten nicht geladen werden.
+Benutzer löschen
+Benutzer neu laden
+Benutzername
+Die Benutzerverwaltung ist nicht verfügbar.
+E-Mail
+Einladungen
+Einladungscodes
+Grenzen
+Gruppe
+Intro-, Rückblick-, Abspann- und Vorschau-Marken in den zugewiesenen Bibliotheken bearbeiten.
+Keine Gruppe
+Konto
+Marken bearbeiten
+Metadaten in den zugewiesenen Bibliotheken bearbeiten, aktualisieren und neu zuordnen.
+Metadaten pflegen
+Nach Benutzername oder E-Mail suchen …
+Nach Zugriffsgruppe filtern
+Nur der Server-Besitzer kann die Admin-Rolle vergeben.
+Optional. Nach diesem Tag wird das Konto automatisch deaktiviert.
+Passwort
+Speichern
+Standardgruppe
+Standardprofil anlegen
+Suche löschen
+Unbekannte Gruppe
+Wiedergabeverlauf anzeigen
+Wiedergabeverlauf von {0} anzeigen
+Zeilen
+Zugang beendet
+Zugang bis
+Zugriff
+Zugriff, Standardwerte und Einladungen für alle verwalten, die Silo nutzen.
+Zugriffsgruppen
+Zugriffsgruppen konnten nicht geladen werden, Gruppennamen und Gruppenfilter sind daher nicht verfügbar.
+Zuletzt aktiv
+bis {0} · {1}
+endet in {0} Tagen oder früher
+ephemeral:{0}
+fill:{0}
+offline:{0}
+replicas:{0}
+untracked:{0}
+as Record
+gpt-6-luna, gemini-2.5-flash, llama3.1
+Allgemeine Einstellungen
+Angenommen
+Benannt nach dem Teil vor dem @ der eingegebenen E-Mail. Der Name lässt sich später ändern.
+Benannt nach dem Teil vor dem @. Der Name lässt sich später ändern.
+Benutzer
+Das Ergebnis ist möglicherweise unklar. Lade den Verlauf neu, bevor du erneut sendest.
+Das ist zugleich die Zieladresse und der Benutzername für die Anmeldung.
+Der Link funktioniert einmal und läuft nach 7 Tagen ab. Erneutes Senden erzeugt einen neuen Link und macht diesen ungültig.
+Der Link funktioniert einmal und läuft nach 7 Tagen ab. Jeder mit dem Link kann ihn nutzen. Widerrufe ihn im Verlauf, falls er bei der falschen Person landet.
+Die E-Mail ist fehlgeschlagen oder ihre Zustellung ist unsicher. Der Link funktioniert trotzdem.
+Diese Link-Einladung widerrufen? Der Link funktioniert dann nicht mehr.
+Diesen Link widerrufen
+Dieser Server kann ein Standardprofil nicht zuverlässig mitanlegen. Schalte die Profil-Option aus, um eine Einladung ohne Profil zu erstellen.
+Du gibst den Link selbst weiter, zum Beispiel in einem Chat.
+Durch neuen Link ersetzen
+E-Mail an {0} gesendet. Die Zustellung ist nicht garantiert. Du kannst den Link unten kopieren.
+E-Mail gesendet
+E-Mail ist auf diesem Server nicht eingerichtet.
+E-Mail nicht bestätigt
+E-Mail senden
+E-Mail-Adresse
+E-Mail-Einstellungen
+Ein neuer Link macht den vorherigen ungültig.
+Eingeladen von {0}
+Einladung konnte nicht erneut gesendet werden. Lade den Verlauf neu, bevor du weitermachst.
+Einladung konnte nicht erstellt werden.
+Einladung konnte nicht widerrufen werden.
+Einladung senden
+Einladung widerrufen
+Einladungen sind auf diesem Server nicht eingerichtet.
+Einladungen werden geladen …
+Einladungsfunktionen konnten nicht geladen werden.
+Einladungsfunktionen werden geladen …
+Einladungsverlauf konnte nicht geladen werden.
+Einladungsverlauf konnte nicht neu geladen werden. Versuche es erneut, bevor du eine weitere Einladung erstellst.
+Empfänger
+Erscheint in der E-Mail und auf der Einladungsseite. Nur Text.
+Erstellt
+Erstellt, bevor die Zustellung erfasst wurde
+Erstes Profil anlegen
+Fertig
+Funktionstour bei der ersten Anmeldung zeigen
+Hallo – richte dich ein, wann es dir passt.
+In die Zwischenablage kopiert
+Jemanden einladen
+Lade jemanden per E-Mail ein oder erstelle einen Link, den du selbst weitergibst. Die E-Mail-Adresse wird zum Benutzernamen.
+Lege die öffentliche Silo-Adresse fest, um Einladungslinks zu erstellen.
+Link erstellen
+Link erstellt
+Link kopieren
+Link läuft nach 7 Tagen ab · einmalig nutzbar
+Mehr laden
+Neu laden
+Neue Einladung wird erstellt …
+Neuen Link kopieren, ohne E-Mail
+Neuen Link per E-Mail senden
+Neuer Einladungslink
+Noch keine Einladungen. Lade jemanden ein, um loszulegen.
+Notiz (optional)
+Nur der Server-Besitzer kann einen Admin einladen.
+Offen
+Persönliche Nachricht (optional)
+Rolle
+Um Einladungen per E-Mail zu senden, richte den Mailserver ein unter
+Verlauf neu laden
+Widerrufen
+Wir senden den Link per E-Mail. Du kannst ihn auch kopieren.
+Wird auf der Einladungsseite und in deinem Einladungsverlauf angezeigt, damit du Links unterscheiden kannst.
+Wird gesendet …
+Wähle den Zugriff und wie die Person den Einladungslink bekommt.
+Zeigt, was dieser Server kann, und lässt ausgeschaltete Funktionen weg.
+Zugriffsgruppe
+Zustellung
+läuft ab am
+Aktionen
+Bezeichnung
+Code erstellen
+Codes funktionieren nur, solange die öffentliche Registrierung an ist.
+Deaktiviert
+Die maximale Nutzung muss eine positive Zahl sein
+Einladungscode aufstocken
+Einladungscode erstellen
+Einladungscode löschen
+Einladungscode {0} aufstocken
+Einladungscode {0} löschen
+Einladungscodes konnten nicht geladen werden.
+Einladungscodes werden geladen …
+Einstellung „Öffentliche Registrierung“
+Erneut versuchen
+Erstellen
+Löschen
+Max. Nutzungen
+Noch keine Einladungscodes. Erstelle einen, um loszulegen.
+Nutzung
+Nutzungen hinzufügen
+Wird hinzugefügt …
+Zusätzliche Nutzungen
+Zusätzliche Nutzungen für
+Zusätzliche Nutzungen müssen eine positive Zahl sein
+z. B. BETA2026
+z. B. Beta-Tester
+Öffentliche Registrierung ist aus
+– diese Codes funktionieren erst, wenn du sie einschaltest.
+metadata, scanner
+marker:{0}
+providers.marker.{0}
+requests.route-more.{0}
+conditions.{0}
+silo auth local-login enable
+Anime 1080p
+HD-1080p
+Sonarr / Radarr
+live:{0}
+series:{0}:{1}
+client.{0}.{1}
+device.{0}.{1}
+library.{0}.{1}
+profile.{0}
+series.{0}.{1}
+Radarr
+Sonarr
+On Episode File Delete
+On Episode File Delete / On Movie File Delete
+On File Import
+On File Upgrade
+On Movie Delete
+On Movie File Delete
+On Rename
+On Series Delete
+On Series Delete / On Movie Delete
+{0} → Settings → Connect → + → Webhook
+legacy:{0}
+server:{0}
+node:{0}
+, Pick
+color-mix(in srgb, {0} 45%, transparent)
+color-mix(in srgb, {0} 30%, {1})
+silo secret check
+silo backup
+silo backup restore
+satisfies Record
+class ImportFileError extends Error
+Kopieren in die Zwischenablage fehlgeschlagen
+backup:{0}
+local:{0}
+status:{0}
+profile:{0}:access
+profile:{0}:libraries
+users:{0}/profile:{1}

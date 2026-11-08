@@ -14,8 +14,6 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	"golang.org/x/sys/unix"
-
 	"github.com/Silo-Server/silo-server/internal/blobstore"
 	"github.com/Silo-Server/silo-server/internal/s3client"
 	"github.com/Silo-Server/silo-server/internal/secret"
@@ -223,11 +221,11 @@ func FetchSource(ctx context.Context, objects Objects, m *Manifest, opts FetchOp
 
 // dirFreeBytes is the space available to this user at dir.
 func dirFreeBytes(dir string) (uint64, error) {
-	var st unix.Statfs_t
-	if err := unix.Statfs(dir, &st); err != nil {
+	st, err := statDisk(dir)
+	if err != nil {
 		return 0, fmt.Errorf("reading free space in %s: %w", dir, err)
 	}
-	return blockBytes(st.Bavail, st.Bsize), nil
+	return st.Free, nil
 }
 
 func fetchObject(ctx context.Context, objects Objects, entry ObjectEntry, key *ArchiveKey, path string) error {

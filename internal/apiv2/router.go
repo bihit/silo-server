@@ -174,6 +174,7 @@ type Dependencies struct {
 	ServerConnections             ServerConnections
 	NotificationDestinationCreate NotificationDestinationCreateService
 	AdminUnmatchedFiles           AdminUnmatchedFilesService
+	AdminSeriesGaps               AdminSeriesGapsService
 	AdminCatalogItems             AdminCatalogItemsService
 	AdminCatalogImages            AdminCatalogImagesService
 	AdminCatalogMatch             AdminCatalogMatchService

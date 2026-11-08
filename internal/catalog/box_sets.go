@@ -323,6 +323,31 @@ func (r *BoxSetRepository) SetCollectionArtwork(ctx context.Context, id int64, s
 	return nil
 }
 
+// CollectionLanguage returns the metadata language a collection is fetched
+// in: that of the box set libraries holding its movies, the one most of them
+// use when they differ. It returns "" when none sets one.
+func (r *BoxSetRepository) CollectionLanguage(ctx context.Context, id int64) (string, error) {
+	var language string
+	err := r.pool.QueryRow(ctx, `
+		SELECT cf.metadata_language
+		FROM media_item_tmdb_collections m
+		JOIN media_items cmi ON cmi.content_id = m.content_id AND cmi.tmdb_id = m.checked_tmdb_id::text
+		JOIN media_item_libraries cmil ON cmil.content_id = cmi.content_id
+		JOIN media_folders cf ON cf.id = cmil.media_folder_id
+		WHERE m.tmdb_collection_id = $1 AND cf.box_sets_enabled AND cf.enabled IS NOT FALSE
+		  AND btrim(coalesce(cf.metadata_language, '')) <> ''
+		GROUP BY cf.metadata_language
+		ORDER BY count(*) DESC, cf.metadata_language
+		LIMIT 1`, id).Scan(&language)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("reading tmdb collection language: %w", err)
+	}
+	return strings.TrimSpace(language), nil
+}
+
 // TouchCollection marks a collection fetched without changing it, so one
 // TMDB no longer serves is not fetched again on every run.
 func (r *BoxSetRepository) TouchCollection(ctx context.Context, id int64) error {

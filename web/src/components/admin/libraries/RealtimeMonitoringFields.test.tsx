@@ -65,7 +65,7 @@ function Harness({ library }: { library: Library | null }) {
   );
 }
 
-const monitoringSwitch = () => screen.getByRole("switch", { name: "Real-time monitoring" });
+const monitoringSwitch = () => screen.getByRole("switch", { name: "Echtzeit-Überwachung" });
 
 describe("RealtimeMonitoringFields", () => {
   afterEach(cleanup);
@@ -93,8 +93,8 @@ describe("RealtimeMonitoringFields", () => {
     render(<Harness library={library} />);
 
     expect(monitoringSwitch().hasAttribute("disabled")).toBe(true);
-    expect(screen.getByText(/turned off server-wide/)).toBeTruthy();
-    const link = screen.getByRole("link", { name: "Settings → Library & Metadata" });
+    expect(screen.getByText(/serverweit ausgeschaltet/)).toBeTruthy();
+    const link = screen.getByRole("link", { name: "Einstellungen → Library & Metadata" });
     expect(link.getAttribute("href")).toBe("/admin/settings/library");
     expect(screen.queryByText(/^Status:/)).toBeNull();
   });
@@ -102,8 +102,12 @@ describe("RealtimeMonitoringFields", () => {
   it("sends the switch with the update", async () => {
     render(<Harness library={library} />);
 
-    expect(screen.getByText("Scan this library automatically when its files change.")).toBeTruthy();
-    expect(screen.getByText("Status: Monitoring 4,812 folders (inotify)")).toBeTruthy();
+    expect(
+      screen.getByText("Diese Bibliothek automatisch scannen, wenn sich ihre Dateien ändern."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(`Status: ${(4812).toLocaleString()} Ordner überwacht (inotify)`),
+    ).toBeTruthy();
     expect(monitoringSwitch().getAttribute("aria-checked")).toBe("true");
     expect(monitoringSwitch().hasAttribute("disabled")).toBe(false);
 

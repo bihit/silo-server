@@ -27,7 +27,7 @@ export function streamBitrateLimitMbpsText(kbps: number): string {
 }
 
 export function formatStreamBitrateLimit(kbps: number): string {
-  return kbps === 0 ? "Unlimited" : `${streamBitrateLimitMbpsText(kbps)} Mbps`;
+  return kbps === 0 ? "Unbegrenzt" : `${streamBitrateLimitMbpsText(kbps)} Mbps`;
 }
 
 // What the custom Mbps box accepts: up to three decimals, "." or "," as separator.

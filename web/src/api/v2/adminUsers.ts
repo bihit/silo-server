@@ -86,6 +86,7 @@ export function adminUserFromV2(user: AdminUserV2): AdminUser {
     created_at: user.created_at,
     updated_at: user.updated_at,
     ...(user.last_active_at === null ? {} : { last_active_at: user.last_active_at }),
+    access_expires_at: user.access_expires_at ?? null,
   };
 }
 

@@ -58,7 +58,9 @@ func (s *Service) dump(ctx context.Context, t target, tools Tools, snapshot stri
 		return ObjectEntry{}, "", fmt.Errorf("starting pg_dump: %w", err)
 	}
 	tee := &dropOnErrorWriter{w: checkIn}
-	if err := check.Start(); err != nil {
+	if !pgRestoreReadsStdin {
+		tee.drop()
+	} else if err := check.Start(); err != nil {
 		tee.drop()
 	}
 	entry, putErr := t.put(ctx, key, io.TeeReader(stdout, tee))
@@ -77,7 +79,9 @@ func (s *Service) dump(ctx context.Context, t target, tools Tools, snapshot stri
 	if piped {
 		return entry, tocCheckPipe, nil
 	}
-	slog.InfoContext(ctx, "piped table of contents check failed; reading the dump back", "component", "backup", "stderr", strings.TrimSpace(checkErr.String()))
+	if pgRestoreReadsStdin {
+		slog.InfoContext(ctx, "piped table of contents check failed; reading the dump back", "component", "backup", "stderr", strings.TrimSpace(checkErr.String()))
+	}
 	if err := readBackTOC(ctx, t, tools, key); err != nil {
 		return ObjectEntry{}, "", err
 	}
@@ -100,10 +104,41 @@ func readBackTOC(ctx context.Context, t target, tools Tools, key string) error {
 // listTOC runs `pg_restore --list` over an archive and fails unless it prints
 // a table of contents.
 func listTOC(ctx context.Context, tools Tools, archive io.Reader) error {
+	if !pgRestoreReadsStdin {
+		return listTOCFromFile(ctx, tools, archive)
+	}
 	cmd := exec.CommandContext(ctx, tools.PgRestore, "--list") //nolint:gosec // G204: the discovered pg_restore, no shell
 	out := &limitedBuffer{limit: 1 << 20}
 	errOut := &limitedBuffer{limit: stderrLimit}
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = archive, out, errOut
+	return runTOC(cmd, out, errOut)
+}
+
+// listTOCFromFile is listTOC for a pg_restore that cannot read an archive
+// from standard input (Windows, where stdin is opened in text mode and the
+// header no longer parses): the archive is spooled to a temporary file and
+// named on the command line.
+func listTOCFromFile(ctx context.Context, tools Tools, archive io.Reader) error {
+	spool, err := os.CreateTemp("", "silo-toc-*.dump")
+	if err != nil {
+		return fmt.Errorf("spooling the dump for its table of contents: %w", err)
+	}
+	defer func() { _ = os.Remove(spool.Name()) }()
+	_, copyErr := io.Copy(spool, archive)
+	if err := spool.Close(); copyErr == nil {
+		copyErr = err
+	}
+	if copyErr != nil {
+		return fmt.Errorf("spooling the dump for its table of contents: %w", copyErr)
+	}
+	cmd := exec.CommandContext(ctx, tools.PgRestore, "--list", spool.Name()) //nolint:gosec // G204: the discovered pg_restore and a temporary file this process wrote
+	out := &limitedBuffer{limit: 1 << 20}
+	errOut := &limitedBuffer{limit: stderrLimit}
+	cmd.Stdout, cmd.Stderr = out, errOut
+	return runTOC(cmd, out, errOut)
+}
+
+func runTOC(cmd *exec.Cmd, out, errOut *limitedBuffer) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("the dump's table of contents is unreadable: %w: %s", err, strings.TrimSpace(errOut.String()))
 	}

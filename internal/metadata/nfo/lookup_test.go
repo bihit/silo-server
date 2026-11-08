@@ -7,8 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -31,6 +31,18 @@ func skipIfPermissionsIgnored(t *testing.T) {
 	t.Helper()
 	if os.Geteuid() == 0 {
 		t.Skip("running as root: file permissions do not block reads")
+	}
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod does not block reads on Windows")
+	}
+}
+
+// skipIfCaseInsensitiveFS skips tests that keep two names differing only in
+// case side by side, which NTFS stores as one file.
+func skipIfCaseInsensitiveFS(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("NTFS keeps names that differ only in case as one file")
 	}
 }
 
@@ -64,6 +76,8 @@ func TestFindItemNFO_Lookup(t *testing.T) {
 		contentType string
 		wantPath    string // relative; "" means no NFO
 		wantTitle   string
+		// caseVariants marks files that differ only in case.
+		caseVariants bool
 	}{
 		{
 			name:        "uppercase Movie.NFO in the movie folder",
@@ -104,11 +118,12 @@ func TestFindItemNFO_Lookup(t *testing.T) {
 				"MOVIE.nfo": `<movie><title>Shouting</title></movie>`,
 				"movie.nfo": `<movie><title>Exact</title></movie>`,
 			},
-			mediaFiles:  []string{"Film.mkv"},
-			sidecarDirs: []string{"."},
-			contentType: typeMovie,
-			wantPath:    "movie.nfo",
-			wantTitle:   "Exact",
+			mediaFiles:   []string{"Film.mkv"},
+			sidecarDirs:  []string{"."},
+			contentType:  typeMovie,
+			wantPath:     "movie.nfo",
+			wantTitle:    "Exact",
+			caseVariants: true,
 		},
 		{
 			name: "basename wins over movie.nfo (Kodi order)",
@@ -172,6 +187,9 @@ func TestFindItemNFO_Lookup(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+			if tc.caseVariants {
+				skipIfCaseInsensitiveFS(t)
+			}
 			root := t.TempDir()
 			for _, rel := range tc.mediaFiles {
 				writeFile(t, filepath.Join(root, rel), "video")
@@ -632,6 +650,9 @@ func TestFindItemNFO_TraverseOnlyFolderFallsBackToExactNames(t *testing.T) {
 // modification time, since the folder's change time keys the listing too.
 func TestProvider_DirectoryListingFollowsChanges(t *testing.T) {
 	t.Parallel()
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows reports no change time, so a restored modification time hides an added file")
+	}
 
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "Film.mkv"), "video")
@@ -978,7 +999,7 @@ func TestReadNFOFile_ReplacedFile(t *testing.T) {
 	if err := os.Remove(path); err != nil {
 		t.Fatalf("Remove() error = %v", err)
 	}
-	if err := syscall.Mkfifo(path, 0o644); err != nil {
+	if err := makeFIFO(path); err != nil {
 		t.Skipf("Mkfifo() unsupported: %v", err)
 	}
 	done := make(chan error, 1)

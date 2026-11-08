@@ -202,8 +202,9 @@ func Resolve(file *models.MediaFile, caps ClientCapabilities, settings AdminSett
 	}
 
 	// Case 3: Video OK but audio codec unsupported → remux with audio transcode.
-	// This is much cheaper than a full video transcode.
-	if videoOK && !audioOK && !copyUnsafe {
+	// This is much cheaper than a full video transcode, but still an encode,
+	// so it needs transcoding enabled like Case 4.
+	if videoOK && !audioOK && !copyUnsafe && settings.TranscodeEnabled {
 		return &PlayDecision{
 			Method:         PlayRemux,
 			File:           file,

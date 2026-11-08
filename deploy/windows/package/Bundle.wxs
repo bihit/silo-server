@@ -1,0 +1,27 @@
+<!--
+  Setup.exe for the unofficial native Windows test build (WiX Toolset 5):
+  installs the MSI, then offers "Launch", which runs Setup-Silo.ps1 (it asks
+  for administrator rights itself). Build through Build-SiloPackage.ps1.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+  <Bundle Name="Silo Windows Test Build (inoffiziell)"
+          Manufacturer="Community build (not Silo Media)"
+          Version="$(var.Version)"
+          UpgradeCode="5954F5CD-80DD-40DB-9DEE-355BF8E41C78">
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication LicenseFile="$(var.LicenseFile)" Theme="rtfLicense" />
+    </BootstrapperApplication>
+
+    <Variable Name="InstallFolder" Type="formatted" Value="[WindowsVolume]SiloWindowsTest" bal:Overridable="yes" />
+    <Variable Name="LaunchTarget" Type="formatted" Value="[System64Folder]WindowsPowerShell\v1.0\powershell.exe" />
+    <Variable Name="LaunchArguments" Type="formatted"
+              Value="-NoProfile -ExecutionPolicy Bypass -File &quot;[InstallFolder]\silo-server\deploy\windows\Setup-Silo.ps1&quot; -Pause" />
+
+    <Chain>
+      <MsiPackage SourceFile="$(var.MsiPath)" Vital="yes">
+        <MsiProperty Name="INSTALLFOLDER" Value="[InstallFolder]" />
+      </MsiPackage>
+    </Chain>
+  </Bundle>
+</Wix>

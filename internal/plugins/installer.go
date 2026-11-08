@@ -18,7 +18,6 @@ import (
 
 	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	publicmanifest "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
-
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Silo-Server/silo-server/internal/pluginhost"
@@ -636,7 +635,7 @@ func loadManifestFromBinary(ctx context.Context, binaryData []byte) (*pluginv1.P
 	execCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(execCtx, tmpBinary, "manifest")
+	cmd := pluginhost.RunnableBinary(exec.CommandContext(execCtx, tmpBinary, "manifest"), tmpBinary)
 	cmd.Env = pluginhost.ProcessEnv()
 	manifestOut, err := cmd.Output()
 	if err != nil {

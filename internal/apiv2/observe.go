@@ -117,6 +117,9 @@ type observation struct {
 	// read once when the request arrives.
 	clientName    string
 	clientVersion string
+	// problemErrors names the fields a validation problem rejected, as
+	// location, code and the catalog's safe detail; never the value.
+	problemErrors string
 }
 
 type observationKey struct{}
@@ -278,6 +281,9 @@ func report(r *http.Request, o *observation, status int, hijacked bool, bodyByte
 	if o.userID != nil {
 		attrs = append(attrs, "user_id", *o.userID)
 	}
+	if o.problemErrors != "" {
+		attrs = append(attrs, "problem_errors", o.problemErrors)
+	}
 	attrs = append(attrs, o.db.LogAttrs()...)
 	slog.InfoContext(r.Context(), "apiv2 request", attrs...)
 }
@@ -379,5 +385,31 @@ func authClassFor(claims *auth.Claims) string {
 func noteProblem(ctx context.Context, p *Problem) {
 	if o := observationFrom(ctx); o != nil && p != nil {
 		o.errorCode = strings.TrimPrefix(p.Type, ProblemTypeOrigin)
+		o.problemErrors = problemErrorsLabel(p.Errors)
 	}
+}
+
+// problemErrorsLabel joins a problem's field errors for the request log,
+// bounded so a body with many faults cannot flood it.
+func problemErrorsLabel(errs []ProblemError) string {
+	const maxErrors, maxLen = 8, 600
+	parts := make([]string, 0, min(len(errs), maxErrors))
+	for i, e := range errs {
+		if i == maxErrors {
+			parts = append(parts, "+"+strconv.Itoa(len(errs)-maxErrors)+" more")
+			break
+		}
+		// Query and header names can themselves be secrets (token, api_key),
+		// so those errors log only their kind.
+		if loc, _, _ := strings.Cut(e.Location, "."); loc == "query" || loc == "header" {
+			parts = append(parts, loc+" "+e.Code)
+			continue
+		}
+		parts = append(parts, e.Location+" "+e.Code+": "+e.Detail)
+	}
+	label := strings.Join(parts, "; ")
+	if len(label) > maxLen {
+		label = strings.ToValidUTF8(label[:maxLen], "")
+	}
+	return label
 }

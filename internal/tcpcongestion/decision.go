@@ -8,8 +8,6 @@ import (
 	"log/slog"
 	"strings"
 	"syscall"
-
-	"golang.org/x/sys/unix"
 )
 
 // Result describes the requested and granted congestion control and send buffer
@@ -131,7 +129,7 @@ func congestionAction(reason string) string {
 func errorDetails(err error) (errno, detail string) {
 	var code syscall.Errno
 	if errors.As(err, &code) {
-		if name := unix.ErrnoName(code); name != "" {
+		if name := errnoName(code); name != "" {
 			return name, ""
 		}
 	}

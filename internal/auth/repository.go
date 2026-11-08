@@ -61,7 +61,7 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 const allColumns = `id, email, username, password_hash, local_password_login_enabled, password_change_required, role, permissions, enabled,
 	library_ids, max_playback_quality, access_policy_revision,
 	max_streams, max_transcodes, max_remote_stream_bitrate_kbps, max_local_stream_bitrate_kbps, transcode_allowed, audio_transcode_allowed, max_profiles, download_allowed,
-	download_transcode_allowed, requests_allowed, access_group_id, is_owner, break_glass, created_at, updated_at`
+	download_transcode_allowed, requests_allowed, access_group_id, is_owner, break_glass, access_expires_at, created_at, updated_at`
 
 // userLogin receives users.email, users.username, and users.password_hash,
 // all nullable: an account can have only one of a username and an email, and
@@ -120,6 +120,7 @@ func scanUser(row pgx.Row) (*models.User, error) {
 		&u.AccessGroupID,
 		&u.IsOwner,
 		&u.BreakGlass,
+		&u.AccessExpiresAt,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
@@ -165,6 +166,7 @@ func scanUsers(rows pgx.Rows) ([]*models.User, error) {
 			&u.AccessGroupID,
 			&u.IsOwner,
 			&u.BreakGlass,
+			&u.AccessExpiresAt,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 		)
@@ -223,7 +225,7 @@ func createUser(ctx context.Context, db interface {
 		"email", "username", "password_hash", "local_password_login_enabled", "password_change_required", "role", "permissions",
 		"library_ids", "max_playback_quality", "max_streams", "max_transcodes", "max_remote_stream_bitrate_kbps", "max_local_stream_bitrate_kbps",
 		"transcode_allowed", "audio_transcode_allowed", "max_profiles", "download_allowed", "download_transcode_allowed",
-		"requests_allowed",
+		"requests_allowed", "access_expires_at",
 	}
 	args := []any{
 		NormalizeEmail(input.Email),
@@ -245,6 +247,7 @@ func createUser(ctx context.Context, db interface {
 		input.DownloadAllowed,
 		input.DownloadTranscodeAllowed,
 		input.RequestsAllowed,
+		input.AccessExpiresAt,
 	}
 
 	accessGroupID := input.AccessGroupID
@@ -499,6 +502,7 @@ func updateUser(ctx context.Context, db interface {
 		{column: "download_transcode_allowed", set: input.DownloadTranscodeAllowed.Set, value: input.DownloadTranscodeAllowed.Value},
 		{column: "requests_allowed", set: input.RequestsAllowed.Set, value: input.RequestsAllowed.Value},
 		breakGlassUpdateColumn(input),
+		{column: "access_expires_at", set: input.AccessExpiresAt.Set, value: input.AccessExpiresAt.Value},
 	}
 
 	setClauses := []string{}

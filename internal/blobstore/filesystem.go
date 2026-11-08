@@ -15,8 +15,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"golang.org/x/sys/unix"
 )
 
 type Filesystem struct {
@@ -81,8 +79,11 @@ func temporaryStorageError(err error) bool {
 
 func ensureRoot(dir string) error {
 	// Reject symlinks and non-directories even when a later component is absent.
-	current := string(filepath.Separator)
-	for _, component := range strings.Split(strings.TrimPrefix(dir, current), string(filepath.Separator)) {
+	// Walk from the volume root: a Windows path starts with its drive or UNC
+	// share, which is empty on Unix.
+	volume := filepath.VolumeName(dir)
+	current := volume + string(filepath.Separator)
+	for _, component := range strings.Split(strings.TrimPrefix(dir[len(volume):], string(filepath.Separator)), string(filepath.Separator)) {
 		current = filepath.Join(current, component)
 		info, err := os.Lstat(current)
 		if os.IsNotExist(err) {
@@ -123,7 +124,7 @@ func temporary(root *os.Root, dir, prefix string) (*os.File, string, error) {
 	name := path.Join(dir, fmt.Sprintf("%s%x", prefix, rand.Text()))
 	f, err := root.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_RDWR, 0644)
 	if err == nil {
-		err = unix.Flock(int(f.Fd()), unix.LOCK_EX|unix.LOCK_NB)
+		err = lockExclusiveNonBlocking(f)
 		if err != nil {
 			_ = f.Close()
 			_ = root.Remove(name)
@@ -272,7 +273,7 @@ func place(root *os.Root, name, key string, exclusive bool) error {
 	switch {
 	case errors.Is(err, fs.ErrExist):
 		return ErrExists
-	case errors.Is(err, unix.EPERM), errors.Is(err, unix.ENOTSUP), errors.Is(err, unix.EOPNOTSUPP), errors.Is(err, unix.EMLINK):
+	case hardLinkUnsupported(err):
 		// The filesystem takes no hard links (exFAT, some SMB and FUSE
 		// mounts answer EPERM). It is not a permission problem: the
 		// temporary file was just created and written in this directory.
@@ -312,7 +313,7 @@ func syncDir(root *os.Root, dir string) error {
 		return err
 	}
 	defer func() { _ = d.Close() }()
-	if err := d.Sync(); err != nil && !errors.Is(err, syscall.EINVAL) && !errors.Is(err, syscall.ENOTSUP) {
+	if err := d.Sync(); err != nil && !errors.Is(err, syscall.EINVAL) && !errors.Is(err, syscall.ENOTSUP) && !dirSyncUnsupported(err) {
 		return err
 	}
 	return nil
@@ -760,7 +761,7 @@ func cleanupTemporary(root *os.Root, name string) bool {
 		return false
 	}
 	defer func() { _ = file.Close() }()
-	if unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB) != nil {
+	if lockExclusiveNonBlocking(file) != nil {
 		return false
 	}
 	locked, err := file.Stat()

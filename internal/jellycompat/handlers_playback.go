@@ -2572,6 +2572,9 @@ func (h *PlaybackHandler) HandlePlaybackInfo(w http.ResponseWriter, r *http.Requ
 		if capRemovesRoutes {
 			message = "This stream exceeds the server bitrate limit, and no compliant transcoding route is available"
 		}
+		if playback.StreamCopyOnly() {
+			message = playback.TerminalMessageStreamCopyOnlyV3
+		}
 		// Clients rarely surface this body, so record why each version was
 		// refused (issue #2683). The HLS containers and HEVC encoding say why
 		// no encode fit: H.264 is encoded only into MPEG-TS segments, so a
@@ -2788,6 +2791,9 @@ func (h *PlaybackHandler) buildPlaybackSource(
 	remuxAudioEncodeFMP4 := profile.supportsHLSRemuxWithAudioTranscodeForAudioStream(version, selectedAudioIndex, targetAudioChannels)
 	remuxAudioEncodeTS := !remuxAudioEncodeFMP4 && playback.HLSCopyFitsMPEGTS(version.CodecVideo, "") &&
 		profile.supportsHLSRemuxWithAudioTranscodeIn(version, selectedAudioIndex, targetAudioChannels, compatContainerTS)
+	// With transcoding disabled on the server, only stream copies remain:
+	// direct play, progressive remux, and the HLS copy remux.
+	serverEncodes := !playback.StreamCopyOnly()
 	// EnableDirectStream=false rules out serving the source's streams as they
 	// are, not copying video: as in Jellyfin, AllowVideoStreamCopy governs
 	// that. Jellyfin Android TV sends it on its second retry after a failed
@@ -2797,7 +2803,7 @@ func (h *PlaybackHandler) buildPlaybackSource(
 	selectedAudio := compatAudioTrack(version, selectedAudioIndex)
 	audioEncodeChangesAudio := !compatHasNoAudio(version) &&
 		(!strings.EqualFold(selectedAudio.Codec, "aac") || selectedAudio.Channels > targetAudioChannels)
-	hlsAudioTranscode := req.serverBitrateCapKbps == 0 && !bitrateRequiresEncode && !hlsAudioCopy &&
+	hlsAudioTranscode := serverEncodes && req.serverBitrateCapKbps == 0 && !bitrateRequiresEncode && !hlsAudioCopy &&
 		enableTranscoding &&
 		!supportsDirectPlay &&
 		(remuxAudioEncodeFMP4 || remuxAudioEncodeTS)
@@ -2825,9 +2831,9 @@ func (h *PlaybackHandler) buildPlaybackSource(
 	targetVideoCodec := compatTargetVideoCodec
 	targetBitrateKbps, targetResolution, ceilingKbps := compatEncodeTarget(profile, targetVideoCodec, maxBitrate, aacBitrateKbps, version, sourceVideo)
 	h264BitrateKbps, h264Resolution, h264CeilingKbps := targetBitrateKbps, targetResolution, ceilingKbps
-	canEncodeOutput := profile.supportsTranscodingOutput(version, targetAudioChannels, max(targetBitrateKbps, 0), targetResolution)
+	canEncodeOutput := serverEncodes && profile.supportsTranscodingOutput(version, targetAudioChannels, max(targetBitrateKbps, 0), targetResolution)
 	// HEVC needs server opt-in and an explicit compatible HLS fMP4 profile.
-	if len(allowHEVCEncoding) > 0 && allowHEVCEncoding[0] {
+	if serverEncodes && len(allowHEVCEncoding) > 0 && allowHEVCEncoding[0] {
 		hevcBitrateKbps, hevcResolution, hevcCeilingKbps := compatEncodeTarget(profile, compatVideoCodecHEVC, maxBitrate, aacBitrateKbps, version, sourceVideo)
 		if profile.supportsHEVCTranscodingOutput(version, targetAudioChannels, max(hevcBitrateKbps, 0), hevcResolution) {
 			targetVideoCodec = compatVideoCodecHEVC

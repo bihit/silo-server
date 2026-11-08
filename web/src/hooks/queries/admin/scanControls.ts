@@ -33,14 +33,18 @@ function useScanCommand(cancel: boolean) {
           }),
     onSuccess: (_result, intent) => {
       if (!isCapturedProfileAuthorityActive(intent.profileContext)) return;
-      toast.success(cancel ? "Scan cancellation requested" : "Full ingest scan started");
+      toast.success(cancel ? "Abbruch der Scans angefordert" : "Vollständiger Scan gestartet");
       if (cancel)
         void queryClient.invalidateQueries({ queryKey: adminKeys.libraryMatchQueueStatuses() });
     },
     onError: (error, intent) => {
       if (!isCapturedProfileAuthorityActive(intent.profileContext)) return;
       toast.error(
-        error instanceof Error ? error.message : cancel ? "Failed to cancel scans" : "Scan failed",
+        error instanceof Error
+          ? error.message
+          : cancel
+            ? "Scans konnten nicht abgebrochen werden"
+            : "Scan fehlgeschlagen",
       );
     },
   });
@@ -52,7 +56,7 @@ function useScanCommand(cancel: boolean) {
       try {
         intent = captureIntent(id);
       } catch {
-        toast.error("Select an administrator profile before scanning.");
+        toast.error("Wähle vor dem Scannen ein Administratorprofil.");
         return;
       }
       mutation.mutate(intent);

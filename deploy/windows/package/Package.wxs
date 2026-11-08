@@ -1,0 +1,62 @@
+<!--
+  MSI for the unofficial native Windows test build (WiX Toolset 5).
+  Build through Build-SiloPackage.ps1, which passes StageDir and Version.
+  The MSI only copies files and adds Start menu entries; "Silo einrichten"
+  (Setup-Silo.ps1) creates the instance and the services. Uninstalling stops
+  and removes the services first; data, config, logs and backups stay.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package Name="Silo Windows Test Build (inoffiziell)"
+           Manufacturer="Community build (not Silo Media)"
+           Version="$(var.Version)"
+           UpgradeCode="65E58BBB-694F-4315-B10C-E01C24850D2D"
+           Scope="perMachine"
+           Compressed="yes">
+    <MajorUpgrade DowngradeErrorMessage="Eine neuere Version ist bereits installiert. / A newer version is already installed."
+                  Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <StandardDirectory Id="WindowsVolume">
+      <Directory Id="INSTALLFOLDER" Name="SiloWindowsTest" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="MenuFolder" Name="Silo Windows Test" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="Payload" Directory="INSTALLFOLDER">
+      <Files Include="$(var.StageDir)\**" />
+    </ComponentGroup>
+
+    <Component Id="MenuEntries" Directory="MenuFolder" Guid="*">
+      <Shortcut Id="SetupShortcut" Name="Silo einrichten (Setup)"
+                Description="Instanz, Datenbank und Dienste einrichten und starten"
+                Target="[System64Folder]WindowsPowerShell\v1.0\powershell.exe"
+                Arguments="-NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLFOLDER]silo-server\deploy\windows\Setup-Silo.ps1&quot; -Pause"
+                WorkingDirectory="INSTALLFOLDER" />
+      <util:InternetShortcut Id="OpenShortcut" Name="Silo öffnen (Open)" Target="http://127.0.0.1:8020/" />
+      <Shortcut Id="ReadmeShortcut" Name="Silo Windows Test – README"
+                Target="[INSTALLFOLDER]README.md" WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="RemoveMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKLM" Key="Software\SiloWindowsTest" Name="InstallFolder" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+    </Component>
+
+    <Feature Id="Main" Title="Silo Windows Test Build" Level="1">
+      <ComponentGroupRef Id="Payload" />
+      <ComponentRef Id="MenuEntries" />
+    </Feature>
+
+    <!-- Services hold the program files open; remove them before the files go. -->
+    <SetProperty Id="RemoveSiloServices" Before="RemoveSiloServices" Sequence="execute"
+                 Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;[INSTALLFOLDER]silo-server\deploy\windows\Uninstall-SiloServices.ps1&quot;" />
+    <CustomAction Id="RemoveSiloServices" DllEntry="WixQuietExec64" BinaryRef="Wix4UtilCA_X64"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <InstallExecuteSequence>
+      <Custom Action="RemoveSiloServices" Before="RemoveFiles" Condition="REMOVE~=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+
+    <WixVariable Id="WixUILicenseRtf" Value="$(sys.SOURCEFILEDIR)License.rtf" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+  </Package>
+</Wix>

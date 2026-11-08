@@ -77,6 +77,7 @@ import {
   type AdminUserEditor,
 } from "@/api/v2/adminUsers";
 import { userDetailTabSearch } from "./admin-users/detail/userDetailTabs";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import InvitationsTab from "./admin-settings/InvitationsTab";
 import InviteCodesTab from "./admin-settings/InviteCodesTab";
@@ -88,9 +89,32 @@ import {
 } from "@/lib/permissions";
 import { formatDateTime as formatDateTimePreferred } from "@/lib/datetime";
 import { INVALID_EMAIL_MESSAGE, isValidEmail } from "@/lib/email";
+import { newPasswordProblem, passwordErrorMessage } from "@/lib/newPassword";
+import {
+  ACCESS_EXPIRY_PASSED_MESSAGE,
+  accessExpiryInstant,
+  accessExpiryPassed,
+} from "@/lib/accessExpiry";
+import {
+  ACCESS_EXPIRING_SOON_DAYS,
+  ACCESS_SUBSCRIPTION_LABELS,
+  ACCESS_SUBSCRIPTION_STATES,
+  accessSubscriptionOf,
+  accessSubscriptionRemainingLabel,
+  countAccessSubscriptions,
+  type AccessSubscriptionState,
+} from "@/lib/accessSubscriptions";
+import { AccessSubscriptionBadge } from "@/components/admin/AccessSubscriptionBadge";
 
 const PAGE_SIZE_OPTIONS = ["25", "50", "100"] as const;
-type UserSortField = "username" | "email" | "role" | "enabled" | "created_at" | "last_active_at";
+type UserSortField =
+  | "username"
+  | "email"
+  | "role"
+  | "enabled"
+  | "access_expires_at"
+  | "created_at"
+  | "last_active_at";
 type SortDirection = "asc" | "desc";
 
 // Tab ids are a URL contract: other pages deep-link here (General settings
@@ -127,6 +151,10 @@ function AdminUsersPage() {
   const [search, setSearch] = useState("");
   // "all", "none" (regular accounts outside every group), or a group id.
   const [groupFilter, setGroupFilter] = useState("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState<AccessSubscriptionState | "all">(
+    "all",
+  );
+  const subscriptionCounts = useMemo(() => countAccessSubscriptions(users), [users]);
   const accessGroupsQuery = useAccessGroups();
   const accessGroups = useMemo(() => accessGroupsQuery.data ?? [], [accessGroupsQuery.data]);
   const groupNames = useMemo(
@@ -144,13 +172,19 @@ function AdminUsersPage() {
       if (q && !(u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q))) {
         return false;
       }
+      if (
+        subscriptionFilter !== "all" &&
+        accessSubscriptionOf(u.access_expires_at).state !== subscriptionFilter
+      ) {
+        return false;
+      }
       if (groupFilter === "all") return true;
       // Admin accounts can't join groups, so they only appear under "All groups".
       if (u.role === "admin") return false;
       if (groupFilter === "none") return u.access_group_id == null;
       return String(u.access_group_id) === groupFilter;
     });
-  }, [users, search, groupFilter]);
+  }, [users, search, groupFilter, subscriptionFilter]);
 
   const sortedUsers = useMemo(
     () => sortAdminUsers(filteredUsers, sortField, sortDir),
@@ -177,7 +211,7 @@ function AdminUsersPage() {
     try {
       setConfirmDeleteUser(await getAdminUser(u.id, authority));
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Could not load user.");
+      setActionError(err instanceof Error ? err.message : "Benutzer konnte nicht geladen werden.");
     } finally {
       busy.current = false;
     }
@@ -225,8 +259,8 @@ function AdminUsersPage() {
         />
       )}
       <PageHeader
-        title="Users"
-        subtitle="Manage access, defaults, and invite flow for the people using Silo."
+        title="Benutzer"
+        subtitle="Zugriff, Standardwerte und Einladungen für alle verwalten, die Silo nutzen."
         actions={
           <>
             {serverSettings !== undefined && (
@@ -242,14 +276,16 @@ function AdminUsersPage() {
                       : undefined
                   }
                 >
-                  {signupsEnabled ? "Public signups on" : "Public signups off"}
+                  {signupsEnabled
+                    ? "Öffentliche Registrierung an"
+                    : "Öffentliche Registrierung aus"}
                   <ArrowRight className="h-3 w-3" aria-hidden="true" />
                 </Badge>
               </Link>
             )}
             <Button variant="outline" size="sm" asChild>
               <Link to="/admin/access-groups">
-                <Settings2 className="mr-1 h-4 w-4" /> Access Groups
+                <Settings2 className="mr-1 h-4 w-4" /> Zugriffsgruppen
               </Link>
             </Button>
             <Dialog
@@ -261,12 +297,12 @@ function AdminUsersPage() {
             >
               <DialogTrigger asChild>
                 <Button size="sm">
-                  <Plus className="mr-1 h-4 w-4" /> Add User
+                  <Plus className="mr-1 h-4 w-4" /> Benutzer hinzufügen
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Create User</DialogTitle>
+                  <DialogTitle>Benutzer anlegen</DialogTitle>
                 </DialogHeader>
                 <CreateUserForm
                   onBusy={(value) => {
@@ -282,24 +318,64 @@ function AdminUsersPage() {
       {actionError && <p role="alert">{actionError}</p>}
       {usersQuery.isError && (
         <div role="alert">
-          Could not load users.{" "}
-          <Button onClick={() => void usersQuery.refetch()}>Reload users</Button>
+          Benutzer konnten nicht geladen werden.{" "}
+          <Button onClick={() => void usersQuery.refetch()}>Benutzer neu laden</Button>
         </div>
       )}
-      {!available && <p role="status">User administration is unavailable.</p>}
+      {!available && <p role="status">Die Benutzerverwaltung ist nicht verfügbar.</p>}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList variant="line" className="border-border w-full justify-start border-b">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="invitations">Invitations</TabsTrigger>
-          <TabsTrigger value="invite-codes">Invite Codes</TabsTrigger>
+          <TabsTrigger value="users">Benutzer</TabsTrigger>
+          <TabsTrigger value="invitations">Einladungen</TabsTrigger>
+          <TabsTrigger value="invite-codes">Einladungscodes</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="pt-4">
+          <div
+            className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4"
+            role="group"
+            aria-label="Abo-Übersicht"
+          >
+            {ACCESS_SUBSCRIPTION_STATES.map((state) => {
+              const selected = subscriptionFilter === state;
+              return (
+                <button
+                  key={state}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => {
+                    setSubscriptionFilter(selected ? "all" : state);
+                    setPage(0);
+                  }}
+                  className={cn(
+                    "surface-panel-subtle hover:bg-surface-hover/40 rounded-2xl border px-4 py-3 text-left transition-colors",
+                    selected ? "border-primary" : "border-transparent",
+                  )}
+                >
+                  <div className="text-2xl leading-none font-bold tabular-nums">
+                    {subscriptionCounts[state]}
+                  </div>
+                  <div className="mt-1 text-sm font-medium">
+                    {ACCESS_SUBSCRIPTION_LABELS[state]}
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {state === "soon"
+                      ? `endet in ${ACCESS_EXPIRING_SOON_DAYS} Tagen oder früher`
+                      : state === "expired"
+                        ? "Zugang beendet"
+                        : state === "active"
+                          ? "mit Enddatum"
+                          : "ohne Enddatum, unbefristet"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
           <div className="mb-4 flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
-                placeholder="Search by username or email..."
+                placeholder="Nach Benutzername oder E-Mail suchen …"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -310,7 +386,7 @@ function AdminUsersPage() {
               {search && (
                 <button
                   type="button"
-                  aria-label="Clear search"
+                  aria-label="Suche löschen"
                   onClick={() => {
                     setSearch("");
                     setPage(0);
@@ -328,25 +404,26 @@ function AdminUsersPage() {
                 setPage(0);
               }}
             >
-              <SelectTrigger className="sm:w-56" aria-label="Filter by access group">
+              <SelectTrigger className="sm:w-56" aria-label="Nach Zugriffsgruppe filtern">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All groups</SelectItem>
+                <SelectItem value="all">Alle Gruppen</SelectItem>
                 {accessGroups.map((group) => (
                   <SelectItem key={group.id} value={String(group.id)}>
                     {group.name}
                   </SelectItem>
                 ))}
-                <SelectItem value="none">No group</SelectItem>
+                <SelectItem value="none">Keine Gruppe</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {accessGroupsQuery.isError && (
             <div role="alert" className="mb-4 flex flex-wrap items-center gap-2 text-sm">
-              Could not load access groups, so group names and group filters are unavailable.
+              Zugriffsgruppen konnten nicht geladen werden, Gruppennamen und Gruppenfilter sind
+              daher nicht verfügbar.
               <Button variant="outline" size="sm" onClick={() => void accessGroupsQuery.refetch()}>
-                Retry
+                Erneut versuchen
               </Button>
             </div>
           )}
@@ -360,7 +437,7 @@ function AdminUsersPage() {
                     activeDir={sortDir}
                     onSort={handleSort}
                   >
-                    Username
+                    Benutzername
                   </SortableUserHead>
                   <SortableUserHead
                     field="email"
@@ -368,7 +445,7 @@ function AdminUsersPage() {
                     activeDir={sortDir}
                     onSort={handleSort}
                   >
-                    Email
+                    E-Mail
                   </SortableUserHead>
                   <SortableUserHead
                     field="role"
@@ -376,9 +453,9 @@ function AdminUsersPage() {
                     activeDir={sortDir}
                     onSort={handleSort}
                   >
-                    Role
+                    Rolle
                   </SortableUserHead>
-                  <TableHead>Group</TableHead>
+                  <TableHead>Gruppe</TableHead>
                   <SortableUserHead
                     field="enabled"
                     activeField={sortField}
@@ -388,12 +465,20 @@ function AdminUsersPage() {
                     Status
                   </SortableUserHead>
                   <SortableUserHead
+                    field="access_expires_at"
+                    activeField={sortField}
+                    activeDir={sortDir}
+                    onSort={handleSort}
+                  >
+                    Abo
+                  </SortableUserHead>
+                  <SortableUserHead
                     field="created_at"
                     activeField={sortField}
                     activeDir={sortDir}
                     onSort={handleSort}
                   >
-                    Created
+                    Erstellt
                   </SortableUserHead>
                   <SortableUserHead
                     field="last_active_at"
@@ -401,9 +486,9 @@ function AdminUsersPage() {
                     activeDir={sortDir}
                     onSort={handleSort}
                   >
-                    Last Active
+                    Zuletzt aktiv
                   </SortableUserHead>
-                  <TableHead className="w-32">Actions</TableHead>
+                  <TableHead className="w-32">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -424,26 +509,27 @@ function AdminUsersPage() {
                       {u.role === "admin" ? (
                         <span className="text-muted-foreground">—</span>
                       ) : u.access_group_id == null ? (
-                        <span className="text-muted-foreground">No group</span>
+                        <span className="text-muted-foreground">Keine Gruppe</span>
                       ) : (
                         <Link
                           to={`/admin/access-groups/${u.access_group_id}`}
                           className="hover:underline"
                         >
-                          {groupNames.get(String(u.access_group_id)) ?? "Unknown group"}
+                          {groupNames.get(String(u.access_group_id)) ?? "Unbekannte Gruppe"}
                         </Link>
                       )}
                     </TableCell>
                     <TableCell>
                       <Badge variant={u.enabled ? "outline" : "destructive"}>
-                        {u.enabled ? "Active" : "Disabled"}
+                        {u.enabled ? "Aktiv" : "Deaktiviert"}
                       </Badge>
                     </TableCell>
+                    <AccessSubscriptionCell accessExpiresAt={u.access_expires_at} />
                     <TableCell title={formatFullDateTime(u.created_at)}>
                       {formatDateTime(u.created_at)}
                     </TableCell>
                     <TableCell title={u.last_active_at ? formatFullDateTime(u.last_active_at) : ""}>
-                      {formatRelativeTime(u.last_active_at, "Never")}
+                      {formatRelativeTime(u.last_active_at, "Nie")}
                     </TableCell>
                     <TableCell>
                       <TooltipProvider delayDuration={0}>
@@ -453,13 +539,13 @@ function AdminUsersPage() {
                               <Button asChild variant="ghost" size="icon" className="h-7 w-7">
                                 <Link
                                   to={`/admin/history?user_id=${u.id}`}
-                                  aria-label={`View ${u.username} playback history`}
+                                  aria-label={`Wiedergabeverlauf von ${u.username} anzeigen`}
                                 >
                                   <History className="h-3 w-3" aria-hidden="true" />
                                 </Link>
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>View playback history</TooltipContent>
+                            <TooltipContent>Wiedergabeverlauf anzeigen</TooltipContent>
                           </Tooltip>
                           {available && canViewAsAccount(u, viewerId, viewerIsOwner) && (
                             <Tooltip>
@@ -468,13 +554,13 @@ function AdminUsersPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7"
-                                  aria-label={`View as user: ${u.username}`}
+                                  aria-label={`Als Benutzer ansehen: ${u.username}`}
                                   onClick={() => setImpersonatingUser(u)}
                                 >
                                   <UserRound className="h-3 w-3" aria-hidden="true" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>View as user</TooltipContent>
+                              <TooltipContent>Als Benutzer ansehen</TooltipContent>
                             </Tooltip>
                           )}
                           {canManageAccount(u, viewerId, viewerIsOwner) && (
@@ -483,13 +569,13 @@ function AdminUsersPage() {
                                 <Button asChild variant="ghost" size="icon" className="h-7 w-7">
                                   <Link
                                     to={`/admin/users/${u.id}${userDetailTabSearch("access")}`}
-                                    aria-label={`Edit ${u.username}`}
+                                    aria-label={`${u.username} bearbeiten`}
                                   >
                                     <Pencil className="h-3 w-3" aria-hidden="true" />
                                   </Link>
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Edit user</TooltipContent>
+                              <TooltipContent>Benutzer bearbeiten</TooltipContent>
                             </Tooltip>
                           )}
                           {!u.is_owner &&
@@ -501,13 +587,13 @@ function AdminUsersPage() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    aria-label={`Delete ${u.username}`}
+                                    aria-label={`${u.username} löschen`}
                                     onClick={() => void handleDelete(u)}
                                   >
                                     <Trash2 className="h-3 w-3" aria-hidden="true" />
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Delete user</TooltipContent>
+                                <TooltipContent>Benutzer löschen</TooltipContent>
                               </Tooltip>
                             )}
                         </div>
@@ -521,8 +607,7 @@ function AdminUsersPage() {
               <div className="flex items-center justify-between px-4 py-4">
                 <div className="flex items-center gap-4">
                   <span className="text-muted-foreground text-sm">
-                    Showing {page * pageSize + 1}-{Math.min((page + 1) * pageSize, total)} of{" "}
-                    {total}
+                    {page * pageSize + 1}–{Math.min((page + 1) * pageSize, total)} von {total}
                   </span>
                   <Select
                     value={String(pageSize)}
@@ -537,7 +622,7 @@ function AdminUsersPage() {
                     <SelectContent>
                       {PAGE_SIZE_OPTIONS.map((size) => (
                         <SelectItem key={size} value={size}>
-                          {size} rows
+                          {size} Zeilen
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -550,7 +635,7 @@ function AdminUsersPage() {
                     onClick={() => setPage((p) => p - 1)}
                     disabled={page === 0}
                   >
-                    Previous
+                    Zurück
                   </Button>
                   <Button
                     variant="outline"
@@ -558,7 +643,7 @@ function AdminUsersPage() {
                     onClick={() => setPage((p) => p + 1)}
                     disabled={(page + 1) * pageSize >= total}
                   >
-                    Next
+                    Weiter
                   </Button>
                 </div>
               </div>
@@ -573,6 +658,22 @@ function AdminUsersPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function AccessSubscriptionCell({ accessExpiresAt }: { accessExpiresAt?: string | null }) {
+  const subscription = accessSubscriptionOf(accessExpiresAt);
+  return (
+    <TableCell>
+      <div className="flex flex-col items-start gap-0.5">
+        <AccessSubscriptionBadge state={subscription.state} />
+        <span className="text-muted-foreground text-xs">
+          {subscription.expiresAt
+            ? `bis ${subscription.expiresAt.toLocaleDateString()} · ${accessSubscriptionRemainingLabel(subscription)}`
+            : accessSubscriptionRemainingLabel(subscription)}
+        </span>
+      </div>
+    </TableCell>
   );
 }
 
@@ -631,6 +732,9 @@ function sortAdminUsers(users: AdminUser[], field: UserSortField, dir: SortDirec
       case "enabled":
         result = compareText(a.enabled ? "active" : "disabled", b.enabled ? "active" : "disabled");
         break;
+      case "access_expires_at":
+        result = compareTime(a.access_expires_at, b.access_expires_at, dir);
+        break;
       case "created_at":
         result = compareTime(a.created_at, b.created_at, dir);
         break;
@@ -640,7 +744,9 @@ function sortAdminUsers(users: AdminUser[], field: UserSortField, dir: SortDirec
     }
 
     if (result !== 0) {
-      return field === "created_at" || field === "last_active_at" ? result : result * direction;
+      return field === "created_at" || field === "last_active_at" || field === "access_expires_at"
+        ? result
+        : result * direction;
     }
 
     return compareText(a.username, b.username) || a.id - b.id;
@@ -727,6 +833,7 @@ function CreateUserForm({
   const [password, setPassword] = useState("");
   const [requirePasswordChange, setRequirePasswordChange] = useState(false);
   const [role, setRole] = useState("user");
+  const [accessUntil, setAccessUntil] = useState("");
   const [permissions, setPermissions] = useState<string[]>([PERMISSION_MARKER_EDIT]);
   // Policy fields inherit from the access group unless explicitly overridden.
   const [policy, setPolicy] = useState(() => policyStateFromUser(null));
@@ -749,6 +856,7 @@ function CreateUserForm({
   const passwordId = useId();
   const requireChangeId = useId();
   const roleId = useId();
+  const accessUntilId = useId();
   const markerEditId = useId();
   const metadataCurationId = useId();
   const accessGroupSelectId = useId();
@@ -798,6 +906,16 @@ function CreateUserForm({
       setError(INVALID_EMAIL_MESSAGE);
       return;
     }
+    const passwordProblem = newPasswordProblem(password, password);
+    if (passwordProblem) {
+      setError(passwordProblem);
+      return;
+    }
+    const expires = role === "admin" ? null : accessExpiryInstant(accessUntil);
+    if (expires !== null && accessExpiryPassed(accessUntil)) {
+      setError(ACCESS_EXPIRY_PASSED_MESSAGE);
+      return;
+    }
     // A cleared or half-typed limit is not in the policy state, which still
     // holds the last valid value; saving now would send that instead.
     if (invalidLimitDrafts.size > 0) {
@@ -821,12 +939,13 @@ function CreateUserForm({
         create_default_profile: createDefaultProfile,
         ...policyCreateFields(policy),
         ...(typeof groupToSend === "number" ? { access_group_id: groupToSend } : {}),
+        ...(expires !== null ? { access_expires_at: expires } : {}),
       };
       await createMutation.mutateAsync({ body, profileContext: authority });
       createMutation.reset();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save user.");
+      setError(passwordErrorMessage(err, "Benutzer konnte nicht gespeichert werden."));
     } finally {
       busy.current = false;
       onBusy(false);
@@ -842,21 +961,21 @@ function CreateUserForm({
           checked={createDefaultProfile}
           onChange={(event) => setCreateDefaultProfile(event.target.checked)}
         />
-        Create a default profile
+        Standardprofil anlegen
         {!capabilities.data?.default_profile &&
-          " (unavailable; uncheck to create only the account)"}
+          " (nicht verfügbar; abwählen, um nur das Konto anzulegen)"}
       </label>
 
       <Tabs value={dialogTab} onValueChange={setDialogTab} className="min-h-0 flex-1">
         <TabsList variant="line" className="border-border mb-4 w-full justify-start border-b pb-1">
           <TabsTrigger value="account" className="flex-none px-1">
-            Account
+            Konto
           </TabsTrigger>
           <TabsTrigger value="access" className="flex-none px-1">
-            Access
+            Zugriff
           </TabsTrigger>
           <TabsTrigger value="limits" className="flex-none px-1">
-            Limits
+            Grenzen
           </TabsTrigger>
         </TabsList>
 
@@ -864,7 +983,7 @@ function CreateUserForm({
           <TabsContent value="account" className="mt-0 space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor={usernameId}>Username</Label>
+                <Label htmlFor={usernameId}>Benutzername</Label>
                 <Input
                   id={usernameId}
                   value={username}
@@ -873,7 +992,7 @@ function CreateUserForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor={emailId}>Email</Label>
+                <Label htmlFor={emailId}>E-Mail</Label>
                 <Input
                   id={emailId}
                   type="email"
@@ -883,7 +1002,7 @@ function CreateUserForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor={passwordId}>Password</Label>
+                <Label htmlFor={passwordId}>Passwort</Label>
                 <Input
                   id={passwordId}
                   type="password"
@@ -900,18 +1019,18 @@ function CreateUserForm({
                     onCheckedChange={setRequirePasswordChange}
                   />
                   <Label htmlFor={requireChangeId} className="text-xs font-normal">
-                    Require change at first sign-in
+                    Bei der ersten Anmeldung ändern lassen
                   </Label>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor={roleId}>Role</Label>
+                <Label htmlFor={roleId}>Rolle</Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger id={roleId}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="user">Benutzer</SelectItem>
                     <SelectItem value="admin" disabled={adminRoleLocked}>
                       Admin
                     </SelectItem>
@@ -919,16 +1038,30 @@ function CreateUserForm({
                 </Select>
                 {adminRoleLocked && (
                   <p className="text-muted-foreground text-xs">
-                    Only the server owner can grant the admin role.
+                    Nur der Server-Besitzer kann die Admin-Rolle vergeben.
                   </p>
                 )}
               </div>
+              {role !== "admin" && (
+                <div className="space-y-2">
+                  <Label htmlFor={accessUntilId}>Zugang bis</Label>
+                  <Input
+                    id={accessUntilId}
+                    type="date"
+                    value={accessUntil}
+                    onChange={(e) => setAccessUntil(e.target.value)}
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Optional. Nach diesem Tag wird das Konto automatisch deaktiviert.
+                  </p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="access" className="mt-0 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor={accessGroupSelectId}>Group</Label>
+              <Label htmlFor={accessGroupSelectId}>Gruppe</Label>
               <Select
                 value={accessGroupValue}
                 onValueChange={(value) => {
@@ -942,7 +1075,7 @@ function CreateUserForm({
                 <SelectContent>
                   {offerNoGroup && (
                     <SelectItem value="none">
-                      {awaitingDefaultGroup ? "Default group" : "No group"}
+                      {awaitingDefaultGroup ? "Standardgruppe" : "Keine Gruppe"}
                     </SelectItem>
                   )}
                   {selectedGroupMissing && (
@@ -957,15 +1090,16 @@ function CreateUserForm({
               </Select>
               {role === "admin" && (
                 <p className="text-muted-foreground text-xs">
-                  Admin accounts can&apos;t join groups.
+                  Admin-Konten können keiner Gruppe angehören.
                 </p>
               )}
             </div>
             <div className="border-border flex items-center justify-between rounded-md border px-3 py-2">
               <div>
-                <Label htmlFor={markerEditId}>Marker Editing</Label>
+                <Label htmlFor={markerEditId}>Marken bearbeiten</Label>
                 <p className="text-muted-foreground text-xs">
-                  Edit intro, recap, credits, and preview markers within assigned libraries.
+                  Intro-, Rückblick-, Abspann- und Vorschau-Marken in den zugewiesenen Bibliotheken
+                  bearbeiten.
                 </p>
               </div>
               <Switch
@@ -980,9 +1114,10 @@ function CreateUserForm({
             </div>
             <div className="border-border flex items-center justify-between rounded-md border px-3 py-2">
               <div>
-                <Label htmlFor={metadataCurationId}>Metadata Curation</Label>
+                <Label htmlFor={metadataCurationId}>Metadaten pflegen</Label>
                 <p className="text-muted-foreground text-xs">
-                  Edit, refresh, and rematch metadata within assigned libraries.
+                  Metadaten in den zugewiesenen Bibliotheken bearbeiten, aktualisieren und neu
+                  zuordnen.
                 </p>
               </div>
               <Switch
@@ -1027,7 +1162,7 @@ function CreateUserForm({
             (createDefaultProfile && !capabilities.data.default_profile)
           }
         >
-          {createMutation.isPending ? "Saving..." : "Save"}
+          {createMutation.isPending ? "Wird gespeichert …" : "Speichern"}
         </Button>
       </div>
     </form>

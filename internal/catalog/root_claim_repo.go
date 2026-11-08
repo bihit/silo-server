@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/Silo-Server/silo-server/internal/models"
+	"github.com/Silo-Server/silo-server/internal/pathscope"
 )
 
 // RootClaimRepository provides CRUD operations for the media_item_roots table.
@@ -178,7 +179,7 @@ func (r *RootClaimRepository) ClaimAndRelinkFiles(ctx context.Context, folderID 
 	}
 
 	// 3. Bulk-link all unlinked present files under this root path.
-	prefixLike := rootPath + "/%"
+	prefixLike := pathscope.PrefixLike(rootPath)
 	tag, err := tx.Exec(ctx, `
 		UPDATE media_files
 		SET content_id = $1, updated_at = NOW()
@@ -186,7 +187,7 @@ func (r *RootClaimRepository) ClaimAndRelinkFiles(ctx context.Context, folderID 
 		  AND missing_since IS NULL
 		  AND extra_id IS NULL
 		  AND (content_id IS NULL OR content_id = '')
-		  AND (file_path = $3 OR file_path LIKE $4)
+		  AND (file_path = $3 OR file_path LIKE $4 ESCAPE '\')
 	`, contentID, folderID, rootPath, prefixLike)
 	if err != nil {
 		return 0, fmt.Errorf("relinking files under root: %w", err)

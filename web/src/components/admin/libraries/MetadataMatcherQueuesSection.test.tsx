@@ -62,19 +62,19 @@ describe("MetadataMatcherQueuesSection", () => {
     const libraries = [{ id: 1, name: "Movies" }] as Library[];
 
     render(<MetadataMatcherQueuesSection libraries={libraries} />);
-    await userEvent.click(screen.getByRole("button", { name: /metadata matcher/i }));
+    await userEvent.click(screen.getByRole("button", { name: /metadaten-zuordnung/i }));
     await userEvent.click(screen.getByText("Movies"));
     expect(mocks.useDetail).toHaveBeenLastCalledWith(1);
     expect(screen.getByText("/media/movies/Movie 10.mkv")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.click(screen.getByRole("button", { name: "Weiter" }));
 
     expect(fetchNextPage).toHaveBeenCalledTimes(1);
-    expect(await screen.findByText("Page 2")).toBeInTheDocument();
+    expect(await screen.findByText("Seite 2")).toBeInTheDocument();
     expect(screen.getByText("/media/movies/Movie 15.mkv")).toBeInTheDocument();
 
     // Going back reads the retained first page without another fetch.
-    await userEvent.click(screen.getByRole("button", { name: "Previous" }));
+    await userEvent.click(screen.getByRole("button", { name: "Zurück" }));
     expect(screen.getByText("/media/movies/Movie 1.mkv")).toBeInTheDocument();
     expect(fetchNextPage).toHaveBeenCalledTimes(1);
   });

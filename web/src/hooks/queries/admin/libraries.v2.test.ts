@@ -146,8 +146,8 @@ describe("library admin hooks on the v2 contract", () => {
       requestsOf(fetchMock).map((r) => [r.method, decodeURIComponent(r.url.pathname)]),
     ).toEqual([["PUT", "/api/v2/libraries/unmatched-items/movie:a/ignore"]]);
     expect(toastMocks.success).toHaveBeenCalledWith(
-      "Ignored Alpha",
-      expect.objectContaining({ action: expect.objectContaining({ label: "Undo" }) }),
+      "Alpha ignoriert",
+      expect.objectContaining({ action: expect.objectContaining({ label: "Rückgängig" }) }),
     );
 
     const [, options] = toastMocks.success.mock.calls[0] as [

@@ -2018,11 +2018,19 @@ func (h *PlaybackHandler) planWithoutLowerVersionV3(ctx context.Context, input p
 	return &alternateCandidateV3{file: input.EffectiveFile, request: input.Request, audioIndex: input.AudioTrackIndex, result: result, toneMapErr: toneMapErr}
 }
 
-func (h *PlaybackHandler) startPlaybackApplicationV3(r *http.Request, body []byte) (playback.DecisionResponseV3, error) {
+func (h *PlaybackHandler) startPlaybackApplicationV3(r *http.Request, body []byte) (_ playback.DecisionResponseV3, err error) {
 	r = r.WithContext(withPlaybackRoutingPolicySnapshotV3(r.Context(), h.playbackRoutingPolicyV3()))
 	timings := newPlaybackStartTimingsV3()
 	var req playback.StartRequestV3
 	defer func() { timings.log(r.Context(), req.PlaybackAttemptID) }()
+	// The client sees only the generic validation summary; keep the reason
+	// in the log so a rejected start can be explained from the server side.
+	defer func() {
+		if e, ok := errors.AsType[*PlaybackOperationError](err); ok && e.Status == http.StatusBadRequest {
+			slog.WarnContext(r.Context(), "playback start rejected", "component", "playback",
+				"reason", e.Message, "file_id", req.FileID, "user_id", apimw.GetUserID(r.Context()))
+		}
+	}()
 	if err := json.Unmarshal(body, &req); err != nil {
 		return playback.DecisionResponseV3{}, playbackOperationError(http.StatusBadRequest, "bad_request", "Invalid protocol v3 request body")
 	}

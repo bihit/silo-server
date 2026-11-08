@@ -43,8 +43,11 @@ type User struct {
 	// when the server turns local passwords off (auth.local_password_login).
 	// Only admin accounts may hold it.
 	BreakGlass bool
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	// AccessExpiresAt ends an ordinary account's access: once it has passed,
+	// the account expiry sweep disables the account. nil = no end date.
+	AccessExpiresAt *time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 // CreateUserInput contains the fields required to create a new user.
@@ -81,6 +84,7 @@ type CreateUserInput struct {
 	DownloadTranscodeAllowed   *bool
 	RequestsAllowed            *bool
 	AccessGroupID              *int64
+	AccessExpiresAt            *time.Time // nil = no end date; ordinary accounts only
 }
 
 // Optional is a tri-state update field: Set=false leaves the column alone,
@@ -133,4 +137,7 @@ type UpdateUserInput struct {
 	// BreakGlass sets or clears the break-glass flag. A role change away
 	// from admin always clears it.
 	BreakGlass *bool
+	// AccessExpiresAt sets (non-nil Value) or clears (nil Value) the
+	// account's end date.
+	AccessExpiresAt Optional[time.Time]
 }

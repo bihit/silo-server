@@ -18,12 +18,16 @@ func EscapeLike(literal string) string {
 	return likeEscaper.Replace(literal)
 }
 
+// PrefixLike returns an ESCAPE '\' pattern matching every path under
+// pathPrefix. The separator is escaped with the path: on Windows it is the
+// escape character itself, and an unescaped trailing `\` would turn the
+// final `%` into a literal percent sign that no path matches.
 func PrefixLike(pathPrefix string) string {
 	clean := filepath.Clean(pathPrefix)
 	if clean == string(filepath.Separator) {
 		return likeEscaper.Replace(clean) + "%"
 	}
-	return likeEscaper.Replace(clean) + string(filepath.Separator) + "%"
+	return likeEscaper.Replace(clean+string(filepath.Separator)) + "%"
 }
 
 // CoverageClauses builds one SQL predicate per root matching rows whose

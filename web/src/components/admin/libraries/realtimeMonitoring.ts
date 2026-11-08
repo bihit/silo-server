@@ -4,17 +4,17 @@ import type { LibraryRealtimeMonitoringEntry, LibraryRealtimeMonitoringState } f
 export const REALTIME_MONITORING_SETTINGS_PATH = "/admin/settings/library";
 
 const STATE_LABELS: Record<LibraryRealtimeMonitoringState, string> = {
-  server_disabled: "Turned off server-wide",
-  library_disabled: "Library is disabled",
-  monitoring_off: "Off",
-  not_reporting: "Not reporting",
-  starting: "Starting",
-  monitoring: "Monitoring",
-  unsupported_filesystem: "Unsupported filesystem",
-  unsupported_platform: "Unsupported platform",
-  limit_reached: "Watch limit reached",
-  root_unavailable: "Folder unavailable",
-  error: "Error",
+  server_disabled: "Serverweit ausgeschaltet",
+  library_disabled: "Bibliothek ist deaktiviert",
+  monitoring_off: "Aus",
+  not_reporting: "Keine Rückmeldung",
+  starting: "Wird gestartet",
+  monitoring: "Überwacht",
+  unsupported_filesystem: "Dateisystem nicht unterstützt",
+  unsupported_platform: "Plattform nicht unterstützt",
+  limit_reached: "Überwachungslimit erreicht",
+  root_unavailable: "Ordner nicht verfügbar",
+  error: "Fehler",
 };
 
 /** A short label for a monitoring state; unknown states read as an error. */
@@ -35,8 +35,7 @@ export function realtimeMonitoringStatusText(entry: LibraryRealtimeMonitoringEnt
 
 function statusSummary(entry: LibraryRealtimeMonitoringEntry): string {
   if (entry.state !== "monitoring") return realtimeMonitoringStateLabel(entry.state);
-  const folderNoun = entry.directories === 1 ? "folder" : "folders";
-  const summary = `Monitoring ${entry.directories.toLocaleString()} ${folderNoun}`;
+  const summary = `${entry.directories.toLocaleString()} Ordner überwacht`;
   return entry.backend ? `${summary} (${entry.backend})` : summary;
 }
 

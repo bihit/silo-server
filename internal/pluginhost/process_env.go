@@ -34,7 +34,7 @@ func ProcessEnv() []string {
 	env := []string{}
 	for _, kv := range os.Environ() {
 		name, _, _ := strings.Cut(kv, "=")
-		if processEnvNames[name] || strings.HasPrefix(name, "LC_") {
+		if processEnvAllowed(name) {
 			env = append(env, kv)
 		}
 	}

@@ -179,7 +179,7 @@ describe("marker detection switch", () => {
     const { result } = renderHook(() => useLibraryForm({ library: null }));
     act(() => result.current.handleTypeChange("audiobooks"));
     render(<AdvancedFields form={result.current} chapterThumbnailsSupported={false} />);
-    expect(screen.queryByText(/Detect .*markers/)).toBeNull();
+    expect(screen.queryByText(/Marken erkennen/)).toBeNull();
   });
 });
 
@@ -216,7 +216,7 @@ describe("seek preview switch", () => {
   it("is hidden when the server does not offer seek previews", () => {
     const { result } = renderHook(() => useLibraryForm({ library: movies }));
     render(<AdvancedFields form={result.current} chapterThumbnailsSupported />);
-    expect(screen.queryByText("Generate seek previews")).toBeNull();
+    expect(screen.queryByText("Spul-Vorschaubilder erzeugen")).toBeNull();
   });
 
   it("needs public asset storage to turn on, but can always turn off", () => {
@@ -228,12 +228,10 @@ describe("seek preview switch", () => {
         trickplaySupported={false}
       />,
     );
+    expect(screen.getByText("Dafür wird ein öffentlicher Asset-Speicher benötigt.")).toBeTruthy();
     expect(
-      screen.getByText("Public asset storage is required before this can be enabled."),
-    ).toBeTruthy();
-    expect(screen.getByRole("switch", { name: /seek previews/i }).hasAttribute("disabled")).toBe(
-      true,
-    );
+      screen.getByRole("switch", { name: /spul-vorschaubilder/i }).hasAttribute("disabled"),
+    ).toBe(true);
     unmount();
 
     const on = renderHook(() =>
@@ -246,8 +244,8 @@ describe("seek preview switch", () => {
         trickplaySupported={false}
       />,
     );
-    expect(screen.getByRole("switch", { name: /seek previews/i }).hasAttribute("disabled")).toBe(
-      false,
-    );
+    expect(
+      screen.getByRole("switch", { name: /spul-vorschaubilder/i }).hasAttribute("disabled"),
+    ).toBe(false);
   });
 });

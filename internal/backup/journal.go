@@ -9,11 +9,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
-	"syscall"
 )
 
 // Swap-mode journal steps. The rename and drop steps are informational: what
@@ -121,7 +121,7 @@ func createJournal(path string, header journalHeader, key []byte) (*journal, err
 	if len(key) == 0 {
 		return nil, errors.New("a restore journal needs SECRET_KEY")
 	}
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY|os.O_APPEND|syscall.O_NOFOLLOW, 0o600) //nolint:gosec // G304: the operator's working directory
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY|os.O_APPEND|openNoFollow, 0o600) //nolint:gosec // G304: the operator's working directory
 	if err != nil {
 		return nil, fmt.Errorf("creating the restore journal: %w", err)
 	}
@@ -150,6 +150,9 @@ var syncDir = func(dir string) error {
 		return err
 	}
 	syncErr := d.Sync()
+	if dirSyncUnsupported(syncErr) {
+		syncErr = nil
+	}
 	if err := d.Close(); syncErr == nil {
 		syncErr = err
 	}
@@ -173,7 +176,7 @@ func openJournal(path string, key []byte) (*journal, error) {
 	if len(key) == 0 {
 		return nil, errors.New("reading a restore journal needs SECRET_KEY")
 	}
-	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|syscall.O_NOFOLLOW, 0) //nolint:gosec // G304: the journal the operator named with --recover
+	file, err := os.OpenFile(path, os.O_RDWR|reopenAppend|openNoFollow, 0) //nolint:gosec // G304: the journal the operator named with --recover
 	if err != nil {
 		return nil, fmt.Errorf("opening the restore journal: %w", err)
 	}
@@ -196,14 +199,14 @@ func trustedJournalFile(file *os.File, path string) error {
 	if !info.Mode().IsRegular() {
 		return fmt.Errorf("%w: %s is not a regular file", errUnauthenticatedJournal, path)
 	}
-	if st, ok := info.Sys().(*syscall.Stat_t); ok && int(st.Uid) != os.Getuid() {
+	if ownedByAnotherUser(info) {
 		return fmt.Errorf("%w: %s belongs to another user", errUnauthenticatedJournal, path)
 	}
 	dir, err := os.Stat(filepath.Dir(path))
 	if err != nil {
 		return err
 	}
-	if dir.Mode().Perm()&0o022 != 0 && dir.Mode()&os.ModeSticky == 0 {
+	if writableByOthers(dir) {
 		return fmt.Errorf("%w: other users can write to %s", errUnauthenticatedJournal, filepath.Dir(path))
 	}
 	return nil
@@ -260,6 +263,11 @@ func readJournal(file *os.File, path string, key []byte) (*journal, error) {
 		if err := file.Sync(); err != nil {
 			return nil, fmt.Errorf("repairing the restore journal: %w", err)
 		}
+	}
+	// Without O_APPEND (reopenAppend is 0 on Windows) the next record goes
+	// where the file offset is, which the read left past a cut torn record.
+	if _, err := file.Seek(0, io.SeekEnd); err != nil {
+		return nil, fmt.Errorf("reading the restore journal: %w", err)
 	}
 	j.file = file
 	return j, nil

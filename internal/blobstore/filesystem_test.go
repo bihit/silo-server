@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -238,6 +239,9 @@ func TestOpenLocalDegradedStartupRecovers(t *testing.T) {
 	if os.Geteuid() == 0 {
 		t.Skip("requires ordinary filesystem permissions")
 	}
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod cannot make a directory unwritable on Windows")
+	}
 	parent := t.TempDir()
 	if err := os.Chmod(parent, 0555); err != nil {
 		t.Fatal(err)
@@ -357,7 +361,7 @@ func TestFilesystemIdentityIsAbsoluteRoot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if a.Identity() != b.Identity() || !strings.HasPrefix(a.Identity(), BackendLocal+"|"+string(filepath.Separator)) {
+	if a.Identity() != b.Identity() || !strings.HasPrefix(a.Identity(), BackendLocal+"|") || !filepath.IsAbs(strings.TrimPrefix(a.Identity(), BackendLocal+"|")) {
 		t.Fatalf("identities %q and %q", a.Identity(), b.Identity())
 	}
 	other, err := NewFilesystem(filepath.Join(root, "other"))

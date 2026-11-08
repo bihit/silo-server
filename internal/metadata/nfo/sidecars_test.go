@@ -77,6 +77,7 @@ func denyReads(t *testing.T, path string) {
 	if os.Geteuid() == 0 {
 		t.Skip("file permissions do not stop root from reading")
 	}
+	skipIfPermissionsIgnored(t)
 	if err := os.Chmod(path, 0); err != nil {
 		t.Fatalf("chmod %s: %v", path, err)
 	}

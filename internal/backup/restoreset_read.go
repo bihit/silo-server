@@ -153,6 +153,9 @@ func (rs *RestoreSet) Cleanup() {
 		_ = os.RemoveAll(rs.dir)
 		if rs.owner != nil {
 			_ = rs.owner.Close()
+			// Windows keeps the open owner file, and so the directory,
+			// until the handle closes; elsewhere the directory is gone.
+			_ = os.RemoveAll(rs.dir)
 		}
 	}
 }

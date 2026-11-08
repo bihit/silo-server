@@ -51,7 +51,7 @@ func FindTools(ctx context.Context) (Tools, error) {
 	}
 	var best Tools
 	for _, dir := range candidates {
-		dump, restore := filepath.Join(dir, "pg_dump"), filepath.Join(dir, "pg_restore")
+		dump, restore := filepath.Join(dir, "pg_dump"+toolExt), filepath.Join(dir, "pg_restore"+toolExt)
 		if !executable(dump) || !executable(restore) {
 			continue
 		}
@@ -71,7 +71,7 @@ func FindTools(ctx context.Context) (Tools, error) {
 
 func executable(path string) bool {
 	info, err := os.Stat(path)
-	return err == nil && !info.IsDir() && info.Mode()&0o111 != 0
+	return err == nil && !info.IsDir() && executableMode(info.Mode())
 }
 
 func toolVersion(ctx context.Context, path string) (int, string, error) {

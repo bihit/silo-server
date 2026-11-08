@@ -87,8 +87,8 @@ describe("LibraryTranslatePanel", () => {
       return Promise.resolve(job({ status: "pending" }));
     });
     renderPanel();
-    await userEvent.selectOptions(await screen.findByLabelText("Language"), "de");
-    await userEvent.click(screen.getByRole("button", { name: "Translate" }));
+    await userEvent.selectOptions(await screen.findByLabelText("Sprache"), "de");
+    await userEvent.click(screen.getByRole("button", { name: "Übersetzen" }));
     await waitFor(() =>
       expect(mocks.toastSuccess).toHaveBeenCalledWith("Translated 2 descriptions across 1 items"),
     );
@@ -172,8 +172,8 @@ describe("LibraryTranslatePanel", () => {
     );
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const first = renderPanel(client);
-    await userEvent.selectOptions(await screen.findByLabelText("Language"), "de");
-    await userEvent.click(screen.getByRole("button", { name: "Translate" }));
+    await userEvent.selectOptions(await screen.findByLabelText("Sprache"), "de");
+    await userEvent.click(screen.getByRole("button", { name: "Übersetzen" }));
     first.unmount();
     answer(job({ status: "pending" }));
     await waitFor(() => expect(client.isMutating()).toBe(0));
@@ -191,9 +191,9 @@ describe("LibraryTranslatePanel", () => {
         : Promise.resolve(undefined),
     );
     renderPanel();
-    const stops = await screen.findAllByRole("button", { name: "Stop" });
+    const stops = await screen.findAllByRole("button", { name: "Stoppen" });
     expect(stops).toHaveLength(2);
-    expect(screen.getByRole("button", { name: "Translate" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Übersetzen" })).toBeDisabled();
     await userEvent.click(stops[1]!);
     await waitFor(() =>
       expect(mocks.v2).toHaveBeenCalledWith(

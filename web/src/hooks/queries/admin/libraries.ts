@@ -146,7 +146,9 @@ export function useReorderLibraries() {
       queryClient.invalidateQueries({ queryKey: libraryKeys.all });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to reorder libraries");
+      toast.error(
+        err instanceof Error ? err.message : "Bibliotheken konnten nicht umsortiert werden",
+      );
     },
   });
 }
@@ -262,10 +264,14 @@ export function useUpsertLibraryRootOverride() {
       queryClient.invalidateQueries({
         queryKey: ["admin", "libraries", "roots", variables.library_id],
       });
-      toast.success("Root override saved");
+      toast.success("Ordner-Überschreibung gespeichert");
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to save root override");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Ordner-Überschreibung konnte nicht gespeichert werden",
+      );
     },
   });
 }
@@ -281,10 +287,12 @@ export function useDeleteLibraryRootOverride() {
       queryClient.invalidateQueries({
         queryKey: ["admin", "libraries", "roots", variables.library_id],
       });
-      toast.success("Root override removed");
+      toast.success("Ordner-Überschreibung entfernt");
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to remove root override");
+      toast.error(
+        err instanceof Error ? err.message : "Ordner-Überschreibung konnte nicht entfernt werden",
+      );
     },
   });
 }
@@ -356,14 +364,14 @@ export function useCreateLibrary() {
     mutationFn: (body: CreateLibraryRequest): Promise<Library> =>
       v2("POST /api/v2/libraries", { body: libraryCreateToV2(body) }).then(libraryFromV2),
     onSuccess: (_created, body) => {
-      toast.success("Library created");
+      toast.success("Bibliothek erstellt");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
       if (body.trickplay_enabled !== undefined) {
         queryClient.invalidateQueries({ queryKey: adminKeys.trickplayLibraries() });
       }
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to save");
+      toast.error(err instanceof Error ? err.message : "Speichern fehlgeschlagen");
     },
   });
 }
@@ -380,14 +388,14 @@ export function useUpdateLibrary() {
     }): Promise<Library> =>
       v2("PATCH /api/v2/libraries/{id}", { path: { id: String(id) }, body }).then(libraryFromV2),
     onSuccess: (_updated, { body }) => {
-      toast.success("Library updated");
+      toast.success("Bibliothek aktualisiert");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
       if (body.trickplay_enabled !== undefined || body.enabled !== undefined) {
         queryClient.invalidateQueries({ queryKey: adminKeys.trickplayLibraries() });
       }
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to save");
+      toast.error(err instanceof Error ? err.message : "Speichern fehlgeschlagen");
     },
   });
 }
@@ -398,12 +406,12 @@ export function useDeleteLibrary() {
     mutationFn: (id: number): Promise<AdminJob> =>
       v2("DELETE /api/v2/libraries/{id}", { path: { id: String(id) } }).then(adminJobFromV2),
     onSuccess: () => {
-      toast.success("Library deletion started");
+      toast.success("Löschen der Bibliothek gestartet");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
       queryClient.invalidateQueries({ queryKey: adminKeys.jobs("delete_library") });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to delete");
+      toast.error(err instanceof Error ? err.message : "Löschen fehlgeschlagen");
     },
   });
 }
@@ -416,11 +424,15 @@ export function useCheckLibraryMount() {
         mountCheckFromV2,
       ),
     onSuccess: (data) => {
-      toast.success(data.healthy ? "Mount check passed" : "Mount check found unreachable roots");
+      toast.success(
+        data.healthy
+          ? "Einhängungsprüfung bestanden"
+          : "Einhängungsprüfung hat nicht erreichbare Ordner gefunden",
+      );
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Mount check failed");
+      toast.error(err instanceof Error ? err.message : "Einhängungsprüfung fehlgeschlagen");
     },
   });
 }
@@ -434,10 +446,10 @@ export function useScanAllLibraries() {
         retryAuthentication: false,
       }),
     onSuccess: () => {
-      toast.success("Full ingest scan started for all libraries");
+      toast.success("Vollständiger Scan aller Bibliotheken gestartet");
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Scan failed");
+      toast.error(err instanceof Error ? err.message : "Scan fehlgeschlagen");
     },
   });
 }
@@ -569,13 +581,15 @@ export function useRetryLibraryMetadataMatchQueue() {
         path: { id: String(id) },
       }),
     onSuccess: (_data, id) => {
-      toast.success("Metadata matcher backlog queued");
+      toast.success("Rückstand der Metadaten-Zuordnung in Warteschlange gestellt");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraryMatchQueueStatuses() });
       queryClient.invalidateQueries({ queryKey: adminKeys.libraryMatchQueueDetail(id) });
     },
     onError: (err) => {
       toast.error(
-        err instanceof Error ? err.message : "Failed to rebuild metadata matcher backlog",
+        err instanceof Error
+          ? err.message
+          : "Rückstand der Metadaten-Zuordnung konnte nicht neu aufgebaut werden",
       );
     },
   });
@@ -619,13 +633,17 @@ export function useSetLibraryProviders() {
         body: providerChainToV2(body.levels),
       }),
     onSuccess: (_data, variables) => {
-      toast.success("Provider chain updated");
+      toast.success("Anbieter-Reihenfolge aktualisiert");
       queryClient.invalidateQueries({
         queryKey: adminKeys.libraryProviders(variables.id),
       });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to update provider chain");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Anbieter-Reihenfolge konnte nicht aktualisiert werden",
+      );
     },
   });
 }
@@ -641,11 +659,11 @@ export function useUploadLibraryPoster() {
       return libraryFromV2(library);
     },
     onSuccess: () => {
-      toast.success("Library poster updated");
+      toast.success("Bibliotheksposter aktualisiert");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to upload poster");
+      toast.error(err instanceof Error ? err.message : "Poster konnte nicht hochgeladen werden");
     },
   });
 }
@@ -656,11 +674,11 @@ export function useDeleteLibraryPoster() {
     mutationFn: (id: number) =>
       v2("DELETE /api/v2/libraries/{id}/poster", { path: { id: String(id) } }),
     onSuccess: () => {
-      toast.success("Library poster removed");
+      toast.success("Bibliotheksposter entfernt");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to remove poster");
+      toast.error(err instanceof Error ? err.message : "Poster konnte nicht entfernt werden");
     },
   });
 }
@@ -682,7 +700,11 @@ export function useRefreshLibraryMetadata() {
         body: { mode },
       }).then(adminJobFromV2),
     onSuccess: (_job, { mode }) => {
-      toast.success(mode === "full" ? "Full metadata refresh queued" : "Metadata refresh queued");
+      toast.success(
+        mode === "full"
+          ? "Vollständige Metadaten-Aktualisierung in Warteschlange"
+          : "Metadaten-Aktualisierung in Warteschlange",
+      );
       queryClient.invalidateQueries({ queryKey: adminKeys.jobs("library_refresh") });
       queryClient.invalidateQueries({ queryKey: adminKeys.jobs("__all") });
     },
@@ -695,7 +717,7 @@ export function useRefreshLibraryMetadata() {
         queryClient.invalidateQueries({ queryKey: adminKeys.jobs("__all") });
         return;
       }
-      toast.error(err instanceof Error ? err.message : "Refresh failed");
+      toast.error(err instanceof Error ? err.message : "Aktualisierung fehlgeschlagen");
     },
   });
 }
@@ -708,12 +730,12 @@ export function useCancelAdminJob() {
         adminJobFromV2,
       ),
     onSuccess: () => {
-      toast.success("Cancellation requested");
+      toast.success("Abbruch angefordert");
       queryClient.invalidateQueries({ queryKey: adminKeys.jobs("library_refresh") });
       queryClient.invalidateQueries({ queryKey: adminKeys.jobs("__all") });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel job");
+      toast.error(err instanceof Error ? err.message : "Auftrag konnte nicht abgebrochen werden");
     },
   });
 }
@@ -802,7 +824,7 @@ export function useSetUnmatchedItemIgnored() {
     mutationFn: (variables: UnmatchedItemIgnoreVariables) =>
       setUnmatchedItemIgnored({ ...variables, ignored: !variables.ignored }),
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to undo");
+      toast.error(err instanceof Error ? err.message : "Rückgängigmachen fehlgeschlagen");
     },
     onSettled: refresh,
   });
@@ -814,18 +836,18 @@ export function useSetUnmatchedItemIgnored() {
         err instanceof Error
           ? err.message
           : variables.ignored
-            ? "Failed to ignore item"
-            : "Failed to restore item",
+            ? "Eintrag konnte nicht ignoriert werden"
+            : "Eintrag konnte nicht wiederhergestellt werden",
       );
     },
     onSuccess: (_data, variables) => {
       toast.success(
-        variables.ignored ? `Ignored ${variables.title}` : `Restored ${variables.title}`,
+        variables.ignored ? `${variables.title} ignoriert` : `${variables.title} wiederhergestellt`,
         {
           description: variables.ignored
-            ? "Silo won't try to match it again. You can restore it from the Ignored view."
-            : "It's back on the unmatched list, and Silo will try to match it again.",
-          action: { label: "Undo", onClick: () => undoMutation.mutate(variables) },
+            ? "Silo versucht nicht mehr, ihn zuzuordnen. Du kannst ihn in der Ansicht „Ignoriert“ wiederherstellen."
+            : "Er steht wieder auf der Liste nicht zugeordneter Einträge, und Silo versucht erneut, ihn zuzuordnen.",
+          action: { label: "Rückgängig", onClick: () => undoMutation.mutate(variables) },
         },
       );
     },
@@ -843,11 +865,11 @@ export function useConfirmEmptyRootCleanup() {
         path: { id: String(id) },
       }),
     onSuccess: () => {
-      toast.success("Deletion confirmed for the next empty-root scan");
+      toast.success("Löschen für den nächsten Scan leerer Ordner bestätigt");
       queryClient.invalidateQueries({ queryKey: adminKeys.libraries() });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Failed to confirm cleanup");
+      toast.error(err instanceof Error ? err.message : "Bereinigung konnte nicht bestätigt werden");
     },
   });
 }

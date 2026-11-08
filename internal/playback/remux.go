@@ -421,6 +421,10 @@ func startRemuxWithOptions(ctx context.Context, filePath, outputFormat string, s
 	// probe when the filter would actually run.
 	dropLeadingPictures = dropLeadingPictures && seekSeconds > 0 && !audioOnly && supportsLeadingPictureDropFilter(bin)
 	args := buildRemuxArgsWithLeadingPictureDropV3(filePath, outputFormat, seekSeconds, transcodeAudio, audioTrackIndex, effectiveProfile, tagSampleEntry, audioOnly, sourceAudioChannels, targetAudioChannels, targetAudioBitrateKbps, dropLeadingPictures, copyAudioCodec)
+	if err := guardStreamCopyArgs(args); err != nil {
+		cancel()
+		return nil, err
+	}
 	cmd := fspath.CommandContext(ctx, bin, args...)
 
 	stdout, err := cmd.StdoutPipe()

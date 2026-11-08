@@ -3699,8 +3699,8 @@ func TestPlanPlaybackV3AndroidMedia3AudioConstraintsFallBackToAAC(t *testing.T) 
 
 // A decodable, HLS-native surround track that only exceeds the delivery's
 // channel ceiling needs an audio downmix, not a video transcode. The AAC
-// conversion runs on the remux route, so it stays available with transcoding
-// disabled.
+// conversion is still an encode, so with transcoding disabled the planner
+// refuses the route instead.
 func TestPlanPlaybackV3ChannelCeilingAdaptsAudioAndCopiesVideo(t *testing.T) {
 	for _, test := range []struct {
 		name         string
@@ -3724,6 +3724,12 @@ func TestPlanPlaybackV3ChannelCeilingAdaptsAudioAndCopiesVideo(t *testing.T) {
 					Settings: PlannerSettingsV3{TranscodeEnabled: transcodeEnabled, Allow4KTranscode: true},
 					Registry: testTransformationRegistryV3(),
 				})
+				if !transcodeEnabled {
+					if result.Plan != nil || result.Terminal == nil || result.Terminal.Reason != "transcoding_disabled" {
+						t.Fatalf("channel-limited result with transcoding disabled = %s, want transcoding_disabled", ExplainPlannerResultV3(result))
+					}
+					return
+				}
 				if result.Plan == nil || result.Plan.Delivery != DeliveryRemuxHLSV3 || result.PlayMethod != PlayRemux || result.TargetVideoCodec != codecCopyV3 {
 					t.Fatalf("channel-limited result = %s", ExplainPlannerResultV3(result))
 				}
@@ -3749,7 +3755,7 @@ func TestPlanPlaybackV3ChannelCeilingRemuxUnderServerBitrateCap(t *testing.T) {
 	selectAndroidAudioTrackV3(&request, file.ID, 0)
 	input := PlannerInputV3{
 		Request: request, RequestedFile: file, EffectiveFile: file, AudioTrackIndex: 0,
-		Settings: PlannerSettingsV3{TranscodeEnabled: false}, Registry: testTransformationRegistryV3(),
+		Settings: PlannerSettingsV3{TranscodeEnabled: true}, Registry: testTransformationRegistryV3(),
 		ServerBitrateCapKbps: 12_200, // 12,000 kbps file total + 192 kbps stereo AAC
 	}
 	result := PlanPlaybackV3(input)
@@ -3913,7 +3919,7 @@ func TestPlanPlaybackV3ProgressiveChannelCeilingAdaptsAudio(t *testing.T) {
 
 			result := PlanPlaybackV3(PlannerInputV3{
 				Request: request, RequestedFile: file, EffectiveFile: file, AudioTrackIndex: 0,
-				Settings: PlannerSettingsV3{TranscodeEnabled: false}, Registry: testTransformationRegistryV3(),
+				Settings: PlannerSettingsV3{TranscodeEnabled: true}, Registry: testTransformationRegistryV3(),
 			})
 			if result.Plan == nil || result.Plan.Delivery != DeliveryRemuxProgressiveV3 || result.PlayMethod != PlayRemux {
 				t.Fatalf("progressive result = %s", ExplainPlannerResultV3(result))

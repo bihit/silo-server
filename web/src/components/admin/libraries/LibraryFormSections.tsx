@@ -87,17 +87,17 @@ export function GeneralFields({
           id="library-name"
           value={form.name}
           onChange={(e) => form.setName(e.target.value)}
-          placeholder="e.g. Movies"
+          placeholder="z. B. Filme"
           aria-invalid={form.errors.name ? true : undefined}
         />
         {form.errors.name ? <p className="text-destructive text-xs">{form.errors.name}</p> : null}
       </div>
       <div className="space-y-1.5">
-        <Label>Type</Label>
+        <Label>Typ</Label>
         <div
           className="grid grid-cols-3 gap-2 sm:grid-cols-5"
           role="radiogroup"
-          aria-label="Library type"
+          aria-label="Bibliothekstyp"
         >
           {LIBRARY_TYPES.map(({ value, label, icon: Icon }) => {
             const selected = form.type === value;
@@ -125,14 +125,15 @@ export function GeneralFields({
         </div>
         {form.library && form.type !== form.library.type ? (
           <p className="text-warning text-xs">
-            Changing the type of an existing library may require a full rescan to rematch items.
+            Wird der Typ einer bestehenden Bibliothek geändert, kann ein vollständiger neuer Scan
+            nötig sein, damit die Einträge neu zugeordnet werden.
           </p>
         ) : null}
       </div>
       <SettingCard
         htmlFor="library-enabled-switch"
-        title="Enabled"
-        description="Disabled libraries are hidden from browsing and skipped by scans."
+        title="Aktiv"
+        description="Deaktivierte Bibliotheken sind beim Stöbern ausgeblendet und werden bei Scans übersprungen."
       >
         <Switch
           id="library-enabled-switch"
@@ -167,7 +168,7 @@ export function FolderFields({ form }: { form: LibraryFormController }) {
                 size="icon"
                 className="text-muted-foreground hover:text-destructive size-9 shrink-0"
                 onClick={() => form.removePath(i)}
-                title="Remove folder"
+                title="Ordner entfernen"
               >
                 <Trash2 className="size-3.5" />
               </Button>
@@ -178,10 +179,10 @@ export function FolderFields({ form }: { form: LibraryFormController }) {
       {form.errors.paths ? <p className="text-destructive text-xs">{form.errors.paths}</p> : null}
       <div className="flex gap-1.5">
         <Button type="button" variant="outline" size="sm" onClick={() => setBrowserOpen(true)}>
-          <FolderSearch className="mr-1 size-3.5" /> Browse
+          <FolderSearch className="mr-1 size-3.5" /> Durchsuchen
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={form.addPath}>
-          <Plus className="mr-1 size-3.5" /> Add Path
+          <Plus className="mr-1 size-3.5" /> Pfad hinzufügen
         </Button>
       </div>
       <FolderBrowser
@@ -217,12 +218,12 @@ export function RealtimeMonitoringFields({ form }: { form: LibraryFormController
   if (serverOff) {
     footer = (
       <p className="text-muted-foreground text-xs">
-        Real-time monitoring is turned off server-wide. Turn it on in{" "}
+        Die Echtzeit-Überwachung ist serverweit ausgeschaltet. Einschalten unter{" "}
         <Link
           to={REALTIME_MONITORING_SETTINGS_PATH}
           className="text-foreground font-medium underline underline-offset-2"
         >
-          Settings → Library &amp; Metadata
+          Einstellungen → Library &amp; Metadata
         </Link>
         .
       </p>
@@ -243,8 +244,8 @@ export function RealtimeMonitoringFields({ form }: { form: LibraryFormController
   return (
     <SettingCard
       htmlFor="realtime-monitoring-switch"
-      title="Real-time monitoring"
-      description="Scan this library automatically when its files change."
+      title="Echtzeit-Überwachung"
+      description="Diese Bibliothek automatisch scannen, wenn sich ihre Dateien ändern."
       footer={footer}
     >
       <Switch
@@ -423,7 +424,7 @@ export function MetadataFields({ form }: { form: LibraryFormController }) {
   return (
     <div className="space-y-5">
       <div className="space-y-1.5">
-        <Label>Metadata Language</Label>
+        <Label>Metadatensprache</Label>
         <Select value={form.metadataLanguage} onValueChange={form.setMetadataLanguage}>
           <SelectTrigger className="w-full sm:w-64">
             <SelectValue />
@@ -437,16 +438,17 @@ export function MetadataFields({ form }: { form: LibraryFormController }) {
           </SelectContent>
         </Select>
         <p className="text-muted-foreground text-xs">
-          Preferred language for titles, summaries, and artwork fetched from providers.
+          Bevorzugte Sprache für Titel, Zusammenfassungen und Bilder, die von Anbietern geladen
+          werden.
         </p>
       </div>
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
-          <Label htmlFor="auto-translate-metadata">Auto-translate descriptions</Label>
+          <Label htmlFor="auto-translate-metadata">Beschreibungen automatisch übersetzen</Label>
           <p className="text-muted-foreground text-xs">
-            When providers have no translation for this library&apos;s language, translate
-            descriptions with AI after each refresh. Requires AI description translation in Admin
-            Settings → AI.
+            Haben die Anbieter keine Übersetzung in der Sprache dieser Bibliothek, werden
+            Beschreibungen nach jeder Aktualisierung per KI übersetzt. Dafür muss die KI-Übersetzung
+            von Beschreibungen unter Admin-Einstellungen → AI aktiv sein.
           </p>
         </div>
         <Switch
@@ -459,15 +461,15 @@ export function MetadataFields({ form }: { form: LibraryFormController }) {
       {form.settingSupport.boxSets && <BoxSetFields form={form} />}
       {form.settingSupport.trailers && (
         <div className="space-y-1.5">
-          <Label>Trailer &amp; extras types</Label>
+          <Label>Trailer- und Extra-Typen</Label>
           <p className="text-muted-foreground text-xs">
-            Video types fetched from metadata providers during refresh. Uncheck everything to
-            disable remote trailers for this library.
+            Videotypen, die bei der Aktualisierung von Metadaten-Anbietern geladen werden. Alles
+            abwählen, um externe Trailer für diese Bibliothek abzuschalten.
           </p>
           <div
             className="grid grid-cols-1 gap-1.5 sm:grid-cols-2"
             role="group"
-            aria-label="Trailer and extras types"
+            aria-label="Trailer- und Extra-Typen"
           >
             {PROVIDER_TRAILER_KINDS.map((kind) => {
               const checked = form.trailerKinds.includes(kind);
@@ -497,15 +499,16 @@ export function MetadataFields({ form }: { form: LibraryFormController }) {
       )}
       {form.contentLevels.length > 0 && (
         <div className="space-y-1.5">
-          <Label>Provider Priority</Label>
+          <Label>Anbieter-Reihenfolge</Label>
           <p className="text-muted-foreground mb-3 text-xs">
-            Local metadata always comes first. Remote providers are asked in order from top to
-            bottom and fill in what is still missing. Uncheck a provider to skip it for that level.
+            Lokale Metadaten kommen immer zuerst. Externe Anbieter werden von oben nach unten
+            abgefragt und ergänzen, was noch fehlt. Einen Anbieter abwählen, um ihn für diese Ebene
+            zu überspringen.
           </p>
           {form.chainLoading ? (
             <div className="border-border bg-surface text-muted-foreground flex items-center justify-center gap-2 rounded-xl border border-dashed p-4 text-xs">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Loading providers…
+              Anbieter werden geladen …
             </div>
           ) : form.hasMetadataProviders ? (
             <>
@@ -513,8 +516,8 @@ export function MetadataFields({ form }: { form: LibraryFormController }) {
                 <div className="mb-3">
                   <SettingCard
                     htmlFor="local-metadata-switch"
-                    title="Local metadata (NFO + artwork)"
-                    description="Reads .nfo files and artwork saved next to your media. Runs first at every level, so its values win over remote providers; fields you lock while editing an item win over both."
+                    title="Lokale Metadaten (NFO + Bilder)"
+                    description="Liest .nfo-Dateien und Bilder, die neben deinen Medien liegen. Läuft auf jeder Ebene zuerst, seine Werte haben also Vorrang vor externen Anbietern; Felder, die du beim Bearbeiten eines Eintrags sperrst, haben Vorrang vor beidem."
                   >
                     <Switch
                       id="local-metadata-switch"
@@ -536,15 +539,15 @@ export function MetadataFields({ form }: { form: LibraryFormController }) {
                 ))
               ) : (
                 <p className="border-border bg-surface text-muted-foreground rounded-xl border border-dashed p-4 text-center text-xs">
-                  No remote metadata provider plugins are installed. Install one under Admin →
-                  Plugins to fetch artwork and descriptions.
+                  Es sind keine Plugins für externe Metadaten-Anbieter installiert. Installiere eins
+                  unter Admin → Plugins, um Bilder und Beschreibungen zu laden.
                 </p>
               )}
             </>
           ) : (
             <p className="border-border bg-surface text-muted-foreground rounded-xl border border-dashed p-4 text-center text-xs">
-              No metadata provider plugins are installed. Install one under Admin → Plugins to fetch
-              artwork and descriptions.
+              Es sind keine Plugins für Metadaten-Anbieter installiert. Installiere eins unter Admin
+              → Plugins, um Bilder und Beschreibungen zu laden.
             </p>
           )}
         </div>
@@ -568,13 +571,13 @@ export function AdvancedFields({
       {form.settingSupport.chapterThumbnails && (
         <SettingCard
           htmlFor="chapter-thumbnails-switch"
-          title="Generate chapter thumbnails"
-          description="Stores chapter preview images in artwork storage (local disk or S3). Chapter markers and chapter menus still work without thumbnails."
+          title="Kapitel-Vorschaubilder erzeugen"
+          description="Speichert Kapitel-Vorschaubilder im Bildspeicher (lokale Festplatte oder S3). Kapitelmarken und Kapitelmenüs funktionieren auch ohne Vorschaubilder."
           footer={
             !chapterThumbnailsSupported ? (
               <p className="text-warning text-xs">
-                Artwork storage must be available before this can be enabled. Check it in Storage
-                &amp; Database settings.
+                Der Bildspeicher muss verfügbar sein, bevor das eingeschaltet werden kann. Prüfe ihn
+                in den Einstellungen unter Storage &amp; Database.
               </p>
             ) : null
           }
@@ -590,12 +593,12 @@ export function AdvancedFields({
       {form.settingSupport.trickplay && trickplaySupported !== undefined && (
         <SettingCard
           htmlFor="trickplay-switch"
-          title="Generate seek previews"
-          description="Makes the thumbnails players show while seeking, in the configured public asset storage. Files are processed in the background at low priority. Turning this off deletes the library's previews."
+          title="Spul-Vorschaubilder erzeugen"
+          description="Erzeugt die Vorschaubilder, die Player beim Spulen zeigen, im eingerichteten öffentlichen Asset-Speicher. Die Dateien werden im Hintergrund mit niedriger Priorität verarbeitet. Ausschalten löscht die Vorschaubilder dieser Bibliothek."
           footer={
             !trickplaySupported ? (
               <p className="text-warning text-xs">
-                Public asset storage is required before this can be enabled.
+                Dafür wird ein öffentlicher Asset-Speicher benötigt.
               </p>
             ) : null
           }
@@ -630,19 +633,19 @@ function markerDetectionCopy(support: {
 }): { title: string; description: string } {
   if (support.creditsOnlyDetection) {
     return {
-      title: "Detect credits markers (best effort)",
+      title: "Abspann-Marken erkennen (nach bestem Bemühen)",
       description:
-        "Looks for end credits in movies in this library, from embedded chapters and the picture near the end. Some movies get no credits marker, or one that starts late. Needs Detect credits on in server settings.",
+        "Sucht in den Filmen dieser Bibliothek nach dem Abspann, anhand eingebetteter Kapitel und des Bildes kurz vor Schluss. Manche Filme bekommen keine Abspann-Marke oder eine, die zu spät beginnt. Dafür muss „Detect credits“ in den Servereinstellungen eingeschaltet sein.",
     };
   }
   const episodes =
-    "Runs background audio analysis for episodes in this library. Embedded intro and credits chapters are used when available.";
+    "Analysiert im Hintergrund den Ton der Episoden dieser Bibliothek. Eingebettete Intro- und Abspann-Kapitel werden genutzt, wenn vorhanden.";
   const kinds =
-    "Detect intros and Detect credits in server settings choose which markers it finds.";
+    "„Detect intros“ und „Detect credits“ in den Servereinstellungen legen fest, welche Marken gesucht werden.";
   return {
-    title: "Detect intro and credits markers",
+    title: "Intro- und Abspann-Marken erkennen",
     description: support.movieCreditsDetection
-      ? `${episodes} Movies get end credits only, on a best-effort basis. ${kinds}`
+      ? `${episodes} Filme bekommen nur Abspann-Marken, nach bestem Bemühen. ${kinds}`
       : `${episodes} ${kinds}`,
   };
 }

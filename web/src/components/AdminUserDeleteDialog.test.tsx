@@ -86,7 +86,9 @@ function mount(props: Partial<Parameters<typeof AdminUserDeleteDialog>[0]> = {})
 }
 
 function typeName(text: string) {
-  fireEvent.change(screen.getByLabelText("Type Target to confirm"), { target: { value: text } });
+  fireEvent.change(screen.getByLabelText("Zum Bestätigen Target eingeben"), {
+    target: { value: text },
+  });
 }
 
 const problem412 = () =>
@@ -104,17 +106,17 @@ it("says what goes with the account and waits for its exact name", () => {
   const fetch = vi.fn<typeof globalThis.fetch>();
   vi.stubGlobal("fetch", fetch);
   mount({ profileCount: 3 });
-  expect(screen.getByRole("alertdialog", { name: "Delete Target?" })).toHaveTextContent(
-    "This removes the account, its 3 profiles, watch history, and saved preferences. It can't be undone.",
+  expect(screen.getByRole("alertdialog", { name: "Target löschen?" })).toHaveTextContent(
+    "Das entfernt das Konto, seine 3 Profile, den Wiedergabeverlauf und gespeicherte Einstellungen. Das kann nicht rückgängig gemacht werden.",
   );
-  const remove = screen.getByRole("button", { name: "Delete account" });
+  const remove = screen.getByRole("button", { name: "Konto löschen" });
   expect(remove).toBeDisabled();
   typeName("target");
   expect(remove).toBeDisabled();
   typeName("Target");
   expect(remove).toBeEnabled();
   // Without a caller that handles it, disabling is not offered.
-  expect(screen.queryByRole("button", { name: "Disable instead" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Stattdessen deaktivieren" })).toBeNull();
   expect(fetch).not.toHaveBeenCalled();
 });
 
@@ -125,8 +127,8 @@ it("disables the account instead, with the same validator", async () => {
   vi.stubGlobal("fetch", fetch);
   const disabled = vi.fn();
   const { done } = mount({ onDisabled: disabled });
-  expect(screen.getByText(/Want to keep the history\?/)).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Disable instead" }));
+  expect(screen.getByText(/Möchtest du den Verlauf behalten\?/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Stattdessen deaktivieren" }));
   await waitFor(() => expect(disabled).toHaveBeenCalledTimes(1));
   expect(done).not.toHaveBeenCalled();
   const [url, init] = fetch.mock.calls[0]!;
@@ -148,8 +150,8 @@ it("does not offer to disable an account that already is", () => {
       />
     </QueryClientProvider>,
   );
-  expect(screen.queryByRole("button", { name: "Disable instead" })).toBeNull();
-  expect(screen.getByText(/its profiles, watch history/)).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Stattdessen deaktivieren" })).toBeNull();
+  expect(screen.getByText(/seine Profile, den Wiedergabeverlauf/)).toBeInTheDocument();
 });
 
 it("retains delete confirmation after412 and uses only explicitly reloaded validator", async () => {
@@ -165,14 +167,16 @@ it("retains delete confirmation after412 and uses only explicitly reloaded valid
   vi.stubGlobal("fetch", fetch);
   const { done, close } = mount();
   typeName("Target");
-  fireEvent.click(screen.getByRole("button", { name: "Delete account" }));
-  await screen.findByText("The user changed. Reload before trying again.");
-  expect(screen.getByRole("button", { name: "Delete account" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Konto löschen" }));
+  await screen.findByText(
+    "Der Benutzer wurde inzwischen geändert. Bitte vor dem nächsten Versuch neu laden.",
+  );
+  expect(screen.getByRole("button", { name: "Konto löschen" })).toBeDisabled();
   expect(close).not.toHaveBeenCalled();
   expect(fetch).toHaveBeenCalledTimes(1);
-  fireEvent.click(screen.getByRole("button", { name: "Reload current user" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Delete account" })).toBeEnabled());
-  fireEvent.click(screen.getByRole("button", { name: "Delete account" }));
+  fireEvent.click(screen.getByRole("button", { name: "Aktuellen Benutzer neu laden" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Konto löschen" })).toBeEnabled());
+  fireEvent.click(screen.getByRole("button", { name: "Konto löschen" }));
   await waitFor(() => expect(done).toHaveBeenCalledTimes(1));
   expect(new Headers(fetch.mock.calls[0]![1]?.headers).get("If-Match")).toBe('"old"');
   expect(new Headers(fetch.mock.calls[2]![1]?.headers).get("If-Match")).toBe('"fresh"');

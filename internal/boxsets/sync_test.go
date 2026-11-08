@@ -20,6 +20,12 @@ type fakeStore struct {
 	recorded    map[string]*int64
 	collections map[int64]catalog.TMDBMovieCollection
 	touched     []int64
+	// languages is each collection's library metadata language.
+	languages map[int64]string
+}
+
+func (s *fakeStore) CollectionLanguage(_ context.Context, id int64) (string, error) {
+	return s.languages[id], nil
 }
 
 func (s *fakeStore) MoviesNeedingCollectionLookup(_ context.Context, _ time.Time, limit int, skip []string) ([]catalog.MovieCollectionLookup, error) {
@@ -104,6 +110,8 @@ type fakeTMDB struct {
 	lookups map[int]int
 	// onCollection runs on each collection fetch.
 	onCollection func()
+	// requested records the language each collection was fetched in.
+	requested map[int]string
 }
 
 func (f *fakeTMDB) GetMovieCollection(_ context.Context, id int) (*tmdb.CollectionRef, error) {
@@ -120,9 +128,12 @@ func (f *fakeTMDB) GetMovieCollection(_ context.Context, id int) (*tmdb.Collecti
 	return ref, nil
 }
 
-func (f *fakeTMDB) GetCollection(_ context.Context, id int) (*tmdb.Collection, error) {
+func (f *fakeTMDB) GetCollectionInLanguage(_ context.Context, id int, language string) (*tmdb.Collection, error) {
 	if f.onCollection != nil {
 		f.onCollection()
+	}
+	if f.requested != nil {
+		f.requested[id] = language
 	}
 	c, ok := f.collections[id]
 	if !ok {
@@ -175,6 +186,34 @@ func TestRunStoresMembershipAndCollectionsInReleaseOrder(t *testing.T) {
 	}
 	if stored.PosterSourcePath != "https://image.tmdb.org/t/p/original/p.jpg" || stored.BackdropSourcePath != "" {
 		t.Fatalf("artwork sources = %q, %q", stored.PosterSourcePath, stored.BackdropSourcePath)
+	}
+}
+
+// A collection is fetched in its library's metadata language, so a German
+// library's box sets are named like its movies; one without a language sends
+// none.
+func TestRunFetchesCollectionsInTheLibraryLanguage(t *testing.T) {
+	store := newFakeStore(
+		catalog.MovieCollectionLookup{ContentID: "hp1", TMDBID: 671},
+		catalog.MovieCollectionLookup{ContentID: "bond", TMDBID: 646},
+	)
+	store.languages = map[int64]string{1241: "de"}
+	client := &fakeTMDB{
+		movies: map[int]*tmdb.CollectionRef{671: {ID: 1241}, 646: {ID: 645}},
+		collections: map[int]*tmdb.Collection{
+			1241: {ID: 1241, Name: "Harry Potter Filmreihe"},
+			645:  {ID: 645, Name: "James Bond Collection"},
+		},
+		requested: map[int]string{},
+	}
+	if _, err := NewSyncer(store, client).Run(t.Context(), noReport); err != nil {
+		t.Fatal(err)
+	}
+	if got := client.requested; len(got) != 2 || got[1241] != "de" || got[645] != "" {
+		t.Fatalf("requested languages = %v, want 1241 in de and 645 in none", got)
+	}
+	if got := store.collections[1241].Name; got != "Harry Potter Filmreihe" {
+		t.Fatalf("stored name = %q", got)
 	}
 }
 

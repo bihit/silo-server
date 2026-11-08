@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LayoutPanelTop,
   Library,
+  ListX,
   MonitorSmartphone,
   PlayCircle,
   Puzzle,
@@ -108,6 +109,13 @@ const PAGES = {
     keywords: ["library", "paths", "scan", "catalog", "seed"],
     icon: Library,
     href: "/admin/libraries",
+  },
+  seriesGaps: {
+    label: "Fehlende Episoden",
+    description: "Serien mit Lücken in der Episodennummerierung.",
+    keywords: ["missing episodes", "gaps", "incomplete series", "fehlende folgen", "lücken"],
+    icon: ListX,
+    href: "/admin/series-gaps",
   },
   autoscanSources: {
     label: "Sources",
@@ -372,6 +380,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
         icon: Library,
         items: [
           PAGES.libraries,
+          PAGES.seriesGaps,
           PAGES.collections,
           { ...PAGES.sections, label: "Home Sections" },
           PAGES.subtitleFiles,

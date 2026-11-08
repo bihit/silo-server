@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Silo-Server/silo-server/internal/api/handlers"
 	"github.com/Silo-Server/silo-server/internal/auth"
@@ -73,19 +74,20 @@ type AdminAccountCapabilitiesOutputBody struct {
 }
 
 type AdminAccountPolicyInput struct {
-	LibraryIDs                 []ID    `json:"library_ids,omitempty" nullable:"true"`
-	MaxPlaybackQuality         *string `json:"max_playback_quality,omitempty" nullable:"true"`
-	MaxStreams                 *int    `json:"max_streams,omitempty" nullable:"true" minimum:"0"`
-	MaxTranscodes              *int    `json:"max_transcodes,omitempty" nullable:"true" minimum:"0"`
-	MaxRemoteStreamBitrateKbps *int    `json:"max_remote_stream_bitrate_kbps,omitempty" nullable:"true" minimum:"0"`
-	MaxLocalStreamBitrateKbps  *int    `json:"max_local_stream_bitrate_kbps,omitempty" nullable:"true" minimum:"0"`
-	MaxProfiles                *int    `json:"max_profiles,omitempty" nullable:"true" minimum:"1" doc:"Household profile limit override; null inherits the access group's limit"`
-	TranscodeAllowed           *bool   `json:"transcode_allowed,omitempty" nullable:"true"`
-	AudioTranscodeAllowed      *bool   `json:"audio_transcode_allowed,omitempty" nullable:"true"`
-	DownloadAllowed            *bool   `json:"download_allowed,omitempty" nullable:"true"`
-	DownloadTranscodeAllowed   *bool   `json:"download_transcode_allowed,omitempty" nullable:"true"`
-	RequestsAllowed            *bool   `json:"requests_allowed,omitempty" nullable:"true"`
-	AccessGroupID              *ID     `json:"access_group_id,omitempty" nullable:"true"`
+	LibraryIDs                 []ID            `json:"library_ids,omitempty" nullable:"true"`
+	MaxPlaybackQuality         *string         `json:"max_playback_quality,omitempty" nullable:"true"`
+	MaxStreams                 *int            `json:"max_streams,omitempty" nullable:"true" minimum:"0"`
+	MaxTranscodes              *int            `json:"max_transcodes,omitempty" nullable:"true" minimum:"0"`
+	MaxRemoteStreamBitrateKbps *int            `json:"max_remote_stream_bitrate_kbps,omitempty" nullable:"true" minimum:"0"`
+	MaxLocalStreamBitrateKbps  *int            `json:"max_local_stream_bitrate_kbps,omitempty" nullable:"true" minimum:"0"`
+	MaxProfiles                *int            `json:"max_profiles,omitempty" nullable:"true" minimum:"1" doc:"Household profile limit override; null inherits the access group's limit"`
+	TranscodeAllowed           *bool           `json:"transcode_allowed,omitempty" nullable:"true"`
+	AudioTranscodeAllowed      *bool           `json:"audio_transcode_allowed,omitempty" nullable:"true"`
+	DownloadAllowed            *bool           `json:"download_allowed,omitempty" nullable:"true"`
+	DownloadTranscodeAllowed   *bool           `json:"download_transcode_allowed,omitempty" nullable:"true"`
+	RequestsAllowed            *bool           `json:"requests_allowed,omitempty" nullable:"true"`
+	AccessGroupID              *ID             `json:"access_group_id,omitempty" nullable:"true"`
+	AccessExpiresAt            NullableInstant `json:"access_expires_at,omitempty" required:"false" doc:"When an ordinary account's access ends; once it has passed, the server disables the account. null removes the end date. An admin account cannot have one"`
 }
 type AdminAccountCreateBody struct {
 	AdminAccountPolicyInput
@@ -140,7 +142,7 @@ type AdminAccountProfilesOutput struct {
 	Body Collection[AdminAccountProfile]
 }
 
-var adminAccountNullable = map[string]bool{groupLibraryIDsField: true, "max_playback_quality": true, "max_streams": true, "max_transcodes": true, "max_remote_stream_bitrate_kbps": true, "max_local_stream_bitrate_kbps": true, "max_profiles": true, "transcode_allowed": true, "audio_transcode_allowed": true, "download_allowed": true, "download_transcode_allowed": true, "requests_allowed": true, "access_group_id": true}
+var adminAccountNullable = map[string]bool{groupLibraryIDsField: true, "max_playback_quality": true, "max_streams": true, "max_transcodes": true, "max_remote_stream_bitrate_kbps": true, "max_local_stream_bitrate_kbps": true, "max_profiles": true, "transcode_allowed": true, "audio_transcode_allowed": true, "download_allowed": true, "download_transcode_allowed": true, "requests_allowed": true, "access_group_id": true, "access_expires_at": true}
 
 func adminAccountID(id ID) (int, *Problem) {
 	n, err := strconv.Atoi(string(id))
@@ -230,6 +232,10 @@ func (b AdminAccountPolicyInput) model(raw []byte) (models.UpdateUserInput, *Pro
 		group = new(int64(n))
 	}
 	present := func(k string) bool { _, ok := m[k]; return ok }
+	var expires *time.Time
+	if b.AccessExpiresAt.Valid {
+		expires = new(b.AccessExpiresAt.Time.Time)
+	}
 	return models.UpdateUserInput{
 		LibraryIDs:                 models.Optional[[]int]{Set: present(groupLibraryIDsField), Value: libraries},
 		MaxPlaybackQuality:         models.Optional[string]{Set: present("max_playback_quality"), Value: b.MaxPlaybackQuality},
@@ -244,6 +250,7 @@ func (b AdminAccountPolicyInput) model(raw []byte) (models.UpdateUserInput, *Pro
 		DownloadTranscodeAllowed:   models.Optional[bool]{Set: present("download_transcode_allowed"), Value: b.DownloadTranscodeAllowed},
 		RequestsAllowed:            models.Optional[bool]{Set: present("requests_allowed"), Value: b.RequestsAllowed},
 		AccessGroupID:              models.Optional[int64]{Set: present("access_group_id"), Value: group},
+		AccessExpiresAt:            models.Optional[time.Time]{Set: present("access_expires_at"), Value: expires},
 	}, nil
 }
 func registerAdminAccounts(reg *Registry) {
@@ -415,7 +422,7 @@ func (reg *Registry) createAdminAccount(ctx context.Context, in *AdminAccountCre
 	if b.Permissions == nil {
 		permissions = nil
 	}
-	id, err := svc.CreateAdminAccount(ctx, auth.CreateAccountInput{User: models.CreateUserInput{Username: b.Username, Email: b.Email, Password: b.Password, PasswordChangeRequired: b.RequirePasswordChange, Role: b.Role, Permissions: permissions, MaxProfiles: b.MaxProfiles, LibraryIDs: libraries, AccessGroupID: policy.AccessGroupID.Value, MaxPlaybackQuality: b.MaxPlaybackQuality, MaxStreams: b.MaxStreams, MaxTranscodes: b.MaxTranscodes, MaxRemoteStreamBitrateKbps: b.MaxRemoteStreamBitrateKbps, MaxLocalStreamBitrateKbps: b.MaxLocalStreamBitrateKbps, TranscodeAllowed: b.TranscodeAllowed, AudioTranscodeAllowed: b.AudioTranscodeAllowed, DownloadAllowed: b.DownloadAllowed, DownloadTranscodeAllowed: b.DownloadTranscodeAllowed, RequestsAllowed: b.RequestsAllowed}, DefaultProfile: auth.DefaultProfileOptions{Enabled: b.CreateDefaultProfile, Name: b.DefaultProfileName}})
+	id, err := svc.CreateAdminAccount(ctx, auth.CreateAccountInput{User: models.CreateUserInput{Username: b.Username, Email: b.Email, Password: b.Password, PasswordChangeRequired: b.RequirePasswordChange, Role: b.Role, Permissions: permissions, MaxProfiles: b.MaxProfiles, LibraryIDs: libraries, AccessGroupID: policy.AccessGroupID.Value, MaxPlaybackQuality: b.MaxPlaybackQuality, MaxStreams: b.MaxStreams, MaxTranscodes: b.MaxTranscodes, MaxRemoteStreamBitrateKbps: b.MaxRemoteStreamBitrateKbps, MaxLocalStreamBitrateKbps: b.MaxLocalStreamBitrateKbps, TranscodeAllowed: b.TranscodeAllowed, AudioTranscodeAllowed: b.AudioTranscodeAllowed, DownloadAllowed: b.DownloadAllowed, DownloadTranscodeAllowed: b.DownloadTranscodeAllowed, RequestsAllowed: b.RequestsAllowed, AccessExpiresAt: policy.AccessExpiresAt.Value}, DefaultProfile: auth.DefaultProfileOptions{Enabled: b.CreateDefaultProfile, Name: b.DefaultProfileName}})
 	if err != nil {
 		return nil, adminAccountError(err)
 	}

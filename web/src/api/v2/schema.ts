@@ -5024,6 +5024,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v2/admin/series-gaps": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List series with missing episodes, from local numbering gaps and, where compared, TMDB's aired season totals. */
+    get: operations["listAdminSeriesGaps"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v2/admin/server/restart": {
     parameters: {
       query?: never;
@@ -13774,6 +13791,11 @@ export interface components {
     };
     AdminAccountCreateBody: {
       /**
+       * Format: date-time
+       * @description When an ordinary account's access ends; once it has passed, the server disables the account. null removes the end date. An admin account cannot have one
+       */
+      access_expires_at?: string | null;
+      /**
        * @description Opaque identifier
        * @example 1
        */
@@ -13859,6 +13881,11 @@ export interface components {
       revision: number;
     };
     AdminAccountUpdateBody: {
+      /**
+       * Format: date-time
+       * @description When an ordinary account's access ends; once it has passed, the server disables the account. null removes the end date. An admin account cannot have one
+       */
+      access_expires_at?: string | null;
       /**
        * @description Opaque identifier
        * @example 1
@@ -21359,6 +21386,103 @@ export interface components {
       configured: string[];
       managed_by_env: string[];
     };
+    AdminSeriesGap: {
+      /** @description Names of the libraries holding the series */
+      libraries: string[];
+      /** @description Regular seasons without any present episode */
+      missing_seasons: components["schemas"]["AdminSeriesMissingSeason"][];
+      /**
+       * Format: int64
+       * @description Regular seasons with at least one present episode
+       */
+      present_seasons: number;
+      /** @description Seasons with missing episodes */
+      seasons: components["schemas"]["AdminSeriesGapSeason"][];
+      /** @description Series content ID */
+      series_id: string;
+      title: string;
+      /** @description TMDB's season totals were applied */
+      tmdb_checked: boolean;
+      /** @description Local numbering does not follow TMDB's seasons */
+      tmdb_mismatch: boolean;
+      /** Format: int64 */
+      year?: number;
+    };
+    AdminSeriesGapSeason: {
+      /**
+       * Format: int64
+       * @description Episodes of the season aired on TMDB; absent when TMDB was not consulted
+       */
+      expected_episodes?: number;
+      /**
+       * Format: int64
+       * @description Number the season is counted from: 1, or the first present number under absolute numbering
+       */
+      first_episode: number;
+      /**
+       * Format: int64
+       * @description Number the season is checked up to: the highest present episode, or TMDB's last aired one when higher
+       */
+      last_episode: number;
+      /** @description Missing episode numbers, at most 500 */
+      missing: number[];
+      /**
+       * Format: int64
+       * @description Numbers missing between first_episode and last_episode
+       */
+      missing_count: number;
+      /**
+       * Format: int64
+       * @description Distinct episode numbers present on disk
+       */
+      present: number;
+      /**
+       * Format: int64
+       * @description Season number
+       */
+      season_number: number;
+      /** @description More numbers missing between present episodes than present; usually a misnumbered file */
+      suspect: boolean;
+      /** @description Present numbers run past TMDB's aired total */
+      tmdb_mismatch: boolean;
+    };
+    AdminSeriesGapsReport: {
+      /** @description Series with missing episodes; empty, never null */
+      items: components["schemas"]["AdminSeriesGap"][];
+      /** @description Progress of the background TMDB comparison */
+      tmdb: components["schemas"]["AdminSeriesGapsTMDB"];
+    };
+    AdminSeriesGapsTMDB: {
+      /**
+       * Format: int64
+       * @description Series with current TMDB season totals
+       */
+      checked: number;
+      /** @description An administrator's TMDB key drives the comparison */
+      enabled: boolean;
+      /**
+       * Format: int64
+       * @description Series TMDB could not match
+       */
+      failed: number;
+      /**
+       * Format: int64
+       * @description Series with present episodes
+       */
+      total: number;
+    };
+    AdminSeriesMissingSeason: {
+      /**
+       * Format: int64
+       * @description Episodes of the season aired on TMDB
+       */
+      expected_episodes?: number;
+      /**
+       * Format: int64
+       * @description Season number
+       */
+      season_number: number;
+    };
     AdminServerHealth: {
       /** Format: int64 */
       errors_24h: number;
@@ -22381,6 +22505,12 @@ export interface components {
       media_folder_id: string;
     };
     AdminUser: {
+      /**
+       * Format: date-time
+       * @description When the account's access ends: once it has passed, the server disables the account. null when it does not expire. Only ordinary accounts carry one
+       * @example 2026-12-31T23:59:59.000Z
+       */
+      access_expires_at: string | null;
       /**
        * @description The access group the account belongs to; null when none
        * @example 2
@@ -83018,6 +83148,112 @@ export interface operations {
       };
       /** @description Unsupported Media Type */
       415: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  listAdminSeriesGaps: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional. When present, it must name the authenticated account's primary profile; an absent header is accepted. */
+        "X-Profile-Id"?: string;
+        /** @description Verification proof for a PIN-locked profile, issued by POST /api/v2/profiles/{id}/verify-pin; required only when the declared profile is locked */
+        "X-Profile-Token"?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminSeriesGapsReport"];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not Acceptable */
+      406: {
         headers: {
           [name: string]: unknown;
         };

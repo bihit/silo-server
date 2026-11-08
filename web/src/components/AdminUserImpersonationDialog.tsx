@@ -30,13 +30,13 @@ export function AdminUserImpersonationDialog({
       onOpenChange={(open) => {
         if (!open && !busy.current) onClose();
       }}
-      title="View as user"
+      title="Als Benutzer ansehen"
       description={
         user.role === "admin"
-          ? `Continue as "${user.username}"? Actions you take will run as this admin, with their access, until you end this session.`
-          : `Continue as "${user.username}"? Actions you take will run as this user. Admin access will be unavailable until you end this session.`
+          ? `Als „${user.username}“ fortfahren? Deine Aktionen laufen bis zum Ende dieser Sitzung als dieser Admin, mit dessen Berechtigungen.`
+          : `Als „${user.username}“ fortfahren? Deine Aktionen laufen als dieser Benutzer. Bis zum Ende dieser Sitzung hast du keinen Admin-Zugriff.`
       }
-      confirmLabel="View as user"
+      confirmLabel="Als Benutzer ansehen"
       isPending={impersonateMutation.isPending}
       onConfirm={() => {
         // Callers offer only accounts the viewer may view as
@@ -54,7 +54,11 @@ export function AdminUserImpersonationDialog({
             navigate("/profiles");
           })
           .catch((err: unknown) => {
-            onError(err instanceof Error ? err.message : "Could not start viewing as this user.");
+            onError(
+              err instanceof Error
+                ? err.message
+                : "Ansicht als dieser Benutzer konnte nicht gestartet werden.",
+            );
           })
           .finally(() => {
             busy.current = false;
