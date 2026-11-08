@@ -1,12 +1,12 @@
-# Silo nativ unter Windows (lokaler Branch `windows-native`)
+# Silo nativ unter Windows – aus dem Quellcode bauen und betreiben
 
 Betrieb ohne Docker, WSL oder Linux-VM. Alle Befehle in einer PowerShell
 (Windows PowerShell 5.1 genügt). Dienste starten, stoppen und registrieren
 braucht eine PowerShell „Als Administrator“.
 
-Für Upstream gilt: Betriebsanleitungen gehören laut `AGENTS.md` ins
-Benutzerhandbuch, nicht ins Repository. Diese Datei dient nur dieser
-Installation.
+Diese Datei richtet sich an Entwickler, die Silo selbst bauen. Wer nur
+installieren will, nimmt den Installer aus den Releases (siehe README.md im
+Hauptordner).
 
 ## Adressen und Ports
 

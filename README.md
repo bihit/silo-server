@@ -1,193 +1,337 @@
-<p align="center">
-  <img src="assets/icon.png" alt="Silo logo" width="112" height="112">
-</p>
+# Silo für Windows – inoffizieller Test-Build
 
-<h1 align="center">Silo</h1>
+**Deutsch** · [English](#english)
 
-<p align="center">
-  A self-hosted media server for films, series, audiobooks, ebooks, podcasts, and manga.
-</p>
+> [!WARNING]
+> Dies ist ein **inoffizieller Community-Build** des Medienservers
+> [Silo](https://github.com/Silo-Server/silo-server), angepasst für den
+> **nativen Betrieb unter Windows**. Er wurde **nicht** von Silo Media
+> erstellt und wird von Silo Media **nicht unterstützt**. Er ist zum
+> **Testen** gedacht. Fehler dieses Builds bitte hier unter
+> [Issues](https://github.com/bihit/silo-server/issues) melden, nicht beim
+> Silo-Projekt.
 
-<p align="center">
-  <a href="https://github.com/Silo-Server/silo-server/releases"><img alt="Latest GitHub release" src="https://img.shields.io/github/v/release/Silo-Server/silo-server?include_prereleases&amp;sort=semver&amp;display_name=tag&amp;style=flat-square&amp;label=release"></a>
-  <a href="https://github.com/orgs/Silo-Server/packages/container/package/silo-server"><img alt="Container image on GHCR" src="https://img.shields.io/badge/container-GHCR-2496ED?style=flat-square&amp;logo=docker&amp;logoColor=white"></a>
-  <a href="https://github.com/Silo-Server/silo-server/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://img.shields.io/github/actions/workflow/status/Silo-Server/silo-server/ci.yml?branch=main&amp;style=flat-square&amp;label=CI"></a>
-  <img alt="Go 1.26" src="https://img.shields.io/badge/Go-1.26-00ADD8?style=flat-square&amp;logo=go&amp;logoColor=white">
-  <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&amp;logo=react&amp;logoColor=white">
-  <a href="LICENSE"><img alt="AGPL-3.0-or-later license" src="https://img.shields.io/badge/license-AGPL--3.0--or--later-555555?style=flat-square"></a>
-</p>
+Silo ist ein selbst gehosteter Medienserver für Filme, Serien, Musik, Hörbücher
+und E-Books. Dieser Build läuft **direkt unter Windows**, ohne Docker, ohne WSL
+und ohne virtuelle Maschine. Der Installer bringt alles mit, was Silo braucht:
 
-<p align="center">
-  <a href="#quick-start">Quick start</a>
-  · <a href="https://siloserver.org/docs">Documentation</a>
-  · <a href="docs/release-versioning.md">Builds &amp; releases</a>
-  · <a href="https://discord.gg/siloserver">Discord</a>
-  · <a href="#supporting-silo">Support Silo</a>
-  · <a href="CONTRIBUTING.md">Contributing</a>
-</p>
+| Komponente | Zweck |
+|---|---|
+| Silo (Windows-Port) | Weboberfläche, API, Streaming, Jellyfin-kompatible Schnittstelle |
+| PostgreSQL 18 + pgvector | Datenbank (nur auf 127.0.0.1 erreichbar) |
+| Garnet | Redis-kompatibler Cache (nur auf 127.0.0.1, mit Passwort) |
+| FFmpeg 8 | Medienanalyse und Wiedergabe |
+| Shawl | betreibt Silo und Garnet als Windows-Dienste |
+
+Go, Node.js oder MSYS2 müssen **nicht** installiert sein.
+
+## Inhalt
+
+- [Voraussetzungen](#voraussetzungen)
+- [Installation](#installation)
+- [Erste Schritte](#erste-schritte)
+- [Medienordner freigeben](#medienordner-freigeben)
+- [Zugriff von anderen Geräten](#zugriff-von-anderen-geräten)
+- [Ports ändern](#ports-ändern)
+- [Bedienung](#bedienung)
+- [Ordner](#ordner)
+- [Sicherungen](#sicherungen)
+- [Update](#update)
+- [Deinstallation](#deinstallation)
+- [Fehlerbehebung](#fehlerbehebung)
+- [Bekannte Einschränkungen](#bekannte-einschränkungen)
+- [Aus dem Quellcode bauen](#aus-dem-quellcode-bauen)
+- [Lizenzen und Marken](#lizenzen-und-marken)
+
+## Voraussetzungen
+
+- Windows 10 oder 11 (64 Bit) oder Windows Server 2019/2022
+- Ein Konto mit **Administratorrechten** für Installation und Einrichtung
+- Etwa **1 GB** freier Speicher für das Programm, dazu Platz für die
+  Datenbank und Vorschaubilder (wächst mit der Bibliothek)
+- Freie Ports **8020** und **8021** (sonst siehe [Ports ändern](#ports-ändern)),
+  außerdem lokal 5432 (PostgreSQL) und 6379 (Garnet)
+
+## Installation
+
+1. Unter **[Releases](https://github.com/bihit/silo-server/releases)** die
+   neueste Version öffnen und **`SiloWindowsTest-<Version>-Setup.exe`**
+   herunterladen.
+   Optional mit `SHA256SUMS.txt` prüfen:
+   `Get-FileHash .\SiloWindowsTest-0.1.0-Setup.exe -Algorithm SHA256`
+2. Die Datei starten. Der Installer ist nicht signiert, deshalb warnt Windows
+   SmartScreen: **„Weitere Informationen“ → „Trotzdem ausführen“**.
+3. Lizenz bestätigen und **Installieren** wählen, dann die Rückfrage der
+   Benutzerkontensteuerung mit „Ja“ beantworten.
+   Standardordner: `C:\Program Files\SiloWindowsTest`.
+4. Am Ende auf **„Starten“** klicken. Es öffnet sich ein Fenster, das noch
+   einmal Administratorrechte anfordert und dann
+   - zufällige Passwörter und den geheimen Schlüssel erzeugt,
+   - die Datenbank anlegt und vorbereitet,
+   - die Windows-Dienste `silo-postgresql`, `silo-garnet` und `silo-server`
+     einrichtet und startet,
+   - im Browser **http://127.0.0.1:8020** öffnet.
+
+   Das dauert beim ersten Mal etwa eine bis drei Minuten.
+
+**Alternativ als MSI:** `SiloWindowsTest-<Version>.msi` installieren und danach
+im Startmenü **„Silo Windows Test“ → „Silo einrichten (Setup)“** ausführen.
+
+> Wer **keine Transcodierung** möchte (nur Direktwiedergabe und Remux), führt
+> die Einrichtung einmal so aus, bevor Silo das erste Mal startet:
+> ```powershell
+> & "C:\Program Files\SiloWindowsTest\silo-server\deploy\windows\Setup-Silo.ps1" -StreamCopyOnly
+> ```
+
+## Erste Schritte
+
+1. **http://127.0.0.1:8020** öffnen (Startmenü: „Silo öffnen“).
+2. Beim ersten Aufruf das **Administratorkonto** anlegen.
+3. Unter **Admin → Bibliotheken** eine Bibliothek hinzufügen und den
+   Medienordner angeben, z. B. `D:\Filme`.
+4. Der erste Scan läuft im Hintergrund; Titel erscheinen nach und nach.
+
+**Sprache:** Die Oberfläche folgt der Sprache des Browsers (Deutsch oder
+Englisch). Umschalten pro Browser mit `?lang=de` oder `?lang=en` am Ende der
+Adresse, z. B. `http://127.0.0.1:8020/?lang=en`.
+
+## Medienordner freigeben
+
+Silo läuft als Windows-Dienst unter dem Konto **`NT SERVICE\silo-server`**.
+Darf dieses Konto einen Medienordner nicht lesen, bleibt die Bibliothek leer.
+Leserechte geben (PowerShell als Administrator):
+
+```powershell
+icacls "D:\Filme" /grant "NT SERVICE\silo-server:(OI)(CI)RX"
+```
+
+Verbundene Netzlaufwerke (`Z:\`) sind für Dienste nicht sichtbar; stattdessen
+den UNC-Pfad verwenden (`\\NAS\Filme`). Der Dienst greift im Netz als
+Computerkonto zu. Das klappt in einer Windows-Domäne; bei einem Heim-NAS ist
+zusätzliche Einrichtung nötig. Zum Testen sind lokale Laufwerke am
+einfachsten.
+
+## Zugriff von anderen Geräten
+
+Die Einrichtung öffnet **keine** Firewall-Ports. Silo ist zunächst nur auf dem
+eigenen PC erreichbar. Für Handy, Fernseher oder andere PCs im Heimnetz die
+Ports freigeben (PowerShell als Administrator):
+
+```powershell
+New-NetFirewallRule -DisplayName "Silo (Web und Apps)" -Direction Inbound -Protocol TCP -LocalPort 8020,8021 -Action Allow -Profile Private
+```
+
+Dann im Netz `http://<IP-des-PCs>:8020` aufrufen. **Jellyfin-Apps**
+(Android, Android TV, Fire TV, iOS, Swiftfin, Infuse …) verbinden sich mit
+`http://<IP-des-PCs>:8021`.
+
+Silo **nicht** ungeschützt per Router-Portweiterleitung ins Internet stellen.
+Für den Zugriff von unterwegs eignet sich ein VPN (z. B. WireGuard, Tailscale)
+oder HTTPS über einen Reverse-Proxy; das Skript
+`silo-server\deploy\windows\Install-SiloHttps.ps1` richtet Caddy mit einem
+Let's-Encrypt-Zertifikat für eine eigene Domain ein.
+
+## Ports ändern
+
+Sind 8020, 8021, 5432 oder 6379 belegt, im Installationsordner die Datei
+`config\ports.json` anlegen, zum Beispiel:
+
+```json
+{ "Silo": 8030, "Jellyfin": 8031, "PostgreSQL": 5433, "Garnet": 6380 }
+```
+
+Danach **„Silo einrichten (Setup)“** erneut ausführen. Vorhandene Daten
+bleiben erhalten.
+
+## Bedienung
+
+Die Dienste starten automatisch mit Windows. Für Hand-Bedienung PowerShell
+**als Administrator** öffnen:
+
+```powershell
+$s = "C:\Program Files\SiloWindowsTest\silo-server\deploy\windows"
+& "$s\Get-SiloStatus.ps1"         # Dienste, Ports, HTTP-Status, Version
+& "$s\Stop-Silo.ps1"              # alles sauber stoppen
+& "$s\Start-Silo.ps1"             # alles starten
+Restart-Service silo-server       # nur Silo neu starten
+& "$s\Get-SiloSnapshot.ps1"       # Diagnosebericht (ohne Passwörter, ohne IPs)
+```
+
+## Ordner
+
+Alles liegt im Installationsordner (Standard
+`C:\Program Files\SiloWindowsTest`):
+
+| Ordner | Inhalt |
+|---|---|
+| `runtime\` | Programme (Silo, PostgreSQL, Garnet, .NET, Shawl, FFmpeg) |
+| `config\` | `silo.env`, Passwörter, Ports – **nur für Administratoren lesbar, nicht weitergeben** |
+| `data\postgres` | Datenbank |
+| `data\silo` | Vorschaubilder, Avatare, Remux-Zwischendateien, nächtliche Sicherungen |
+| `logs\` | Protokolle von Silo, Garnet und PostgreSQL |
+| `backups\` | Sicherungen von `Backup-Silo.ps1` |
+
+## Sicherungen
+
+- Silo sichert **jede Nacht um 04:00** die Datenbank und hochgeladene Dateien
+  nach `data\silo\artwork\backups` und behält 7 Kopien. Einstellbar unter
+  **Admin → Sicherungen**; dort lässt sich auch wiederherstellen.
+- Zusätzlich Datenbank **und Konfiguration** sichern:
+  ```powershell
+  & "C:\Program Files\SiloWindowsTest\silo-server\deploy\windows\Backup-Silo.ps1"
+  ```
+- Der `SECRET_KEY` in `config\silo.env` ist nötig, um verschlüsselte
+  Einstellungen wiederherzustellen. Die Sicherungen am besten auf ein zweites
+  Laufwerk kopieren.
+
+## Update
+
+1. Vorher sichern (siehe oben).
+2. Die neue `Setup.exe` aus den Releases ausführen. Sie ersetzt die
+   Programmdateien; Datenbank, Konfiguration und Bibliotheken bleiben
+   erhalten.
+3. Am Ende **„Starten“** wählen (bzw. „Silo einrichten (Setup)“), damit die
+   Dienste wieder eingerichtet werden. Beim ersten Start einer neuen Version
+   sichert Silo die Datenbank selbst und aktualisiert sie dann.
+
+## Deinstallation
+
+**Einstellungen → Apps → „Silo Windows Test Build (inoffiziell)“ →
+Deinstallieren.** Dabei werden die Dienste gestoppt und entfernt und die
+Programme gelöscht. **Datenbank, Konfiguration, Logs und Sicherungen bleiben
+erhalten** (`data`, `config`, `logs`, `backups` im Installationsordner). Wer
+alles entfernen möchte, löscht diesen Ordner danach von Hand.
+
+## Fehlerbehebung
+
+| Problem | Lösung |
+|---|---|
+| Browser zeigt „Seite nicht erreichbar“ | `Get-SiloStatus.ps1` ausführen; nach dem ersten Start ein bis zwei Minuten warten. Logs: `logs\silo` |
+| Einrichtung meldet „Port … ist belegt“ | Anderes Programm nutzt den Port: [Ports ändern](#ports-ändern) |
+| Bibliothek bleibt leer | Leserechte für `NT SERVICE\silo-server` geben, siehe [Medienordner freigeben](#medienordner-freigeben); Netzlaufwerk als UNC-Pfad angeben |
+| Andere Geräte erreichen Silo nicht | Firewall-Regel anlegen, siehe [Zugriff von anderen Geräten](#zugriff-von-anderen-geräten) |
+| Jellyfin-App findet den Server nicht | Adresse mit Port **8021** eingeben, nicht 8020 |
+| SmartScreen blockiert den Installer | „Weitere Informationen“ → „Trotzdem ausführen“ (der Build ist nicht signiert) |
+
+Für einen Fehlerbericht bitte die Ausgabe von `Get-SiloSnapshot.ps1` anhängen.
+Sie enthält keine Passwörter und keine IP-Adressen, trotzdem vor dem Posten
+einmal durchsehen.
+
+## Bekannte Einschränkungen
+
+- Test-Build: nicht signiert, nicht offiziell, Fehler sind möglich.
+- Einige Admin-Seiten (Bibliotheken, Benutzer, Einladungen, fehlende
+  Episoden) sind in diesem Build fest auf Deutsch.
+- Das Einbrennen von Text-Untertiteln bei der Transcodierung schlägt unter
+  Windows noch fehl.
+- Der Metadaten-Anbieter „Extended Attributes“ liefert unter Windows nichts.
+- Hardware-Beschleunigung ist ausgeschaltet (`playback.hw_accel=none`); sie
+  ist für Windows nicht getestet.
+
+## Aus dem Quellcode bauen
+
+Der Windows-Port liegt in diesem Branch. Bauen und Einrichten aus dem
+Quellcode (Go, MSYS2, Node.js) beschreibt
+[`deploy/windows/README.md`](deploy/windows/README.md); die Installer entstehen
+mit [`deploy/windows/package/Build-SiloPackage.ps1`](deploy/windows/package/Build-SiloPackage.ps1)
+(WiX Toolset 5). Die ursprüngliche Silo-README steht in
+[`README-upstream.md`](README-upstream.md).
+
+## Lizenzen und Marken
+
+Silo steht unter der **GNU Affero General Public License v3.0 oder später**
+mit der Plattform-Ausnahme des Silo-Projekts ([LICENSE](LICENSE),
+[PLATFORM-EXCEPTION.md](PLATFORM-EXCEPTION.md)). Dieser Fork und seine
+Änderungen stehen unter derselben Lizenz; der vollständige Quellcode jeder
+Release-Version liegt in diesem Repository. Die mitgelieferten Komponenten
+und ihre Lizenzen nennt
+[`THIRD-PARTY-NOTICES.md`](deploy/windows/package/THIRD-PARTY-NOTICES.md).
+
+Der Name **Silo** und das Silo-Logo sind Marken der **Silo Media L.L.C.**
+([TRADEMARK.md](TRADEMARK.md)). Dieser Build ist ein inoffizielles
+Community-Projekt, das auf Silo basiert, und wird nicht von Silo Media
+erstellt, geprüft oder unterstützt.
 
 ---
 
+## English
+
 > [!WARNING]
-> Silo is pre-release. APIs, configuration, and database migrations may change
-> before the first stable release. Back up your deployment before updating.
+> This is an **unofficial community build** of the
+> [Silo](https://github.com/Silo-Server/silo-server) media server, adapted to
+> run **natively on Windows**. It is **not** made or supported by Silo Media
+> and is meant for **testing**. Please report problems with this build in this
+> repository's [Issues](https://github.com/bihit/silo-server/issues), not
+> upstream.
 
-## 1.0 release scope
+**What you get:** Silo plus everything it needs – PostgreSQL 18 with pgvector,
+Garnet (Redis-compatible), FFmpeg 8 and Shawl – running as Windows services.
+No Docker, WSL, VM, Go, Node.js or MSYS2 required.
 
-The [1.0 milestone](https://siloserver.org/milestone/1.0/) covers movies and
-series. Audiobooks, ebooks, and Audiobookshelf compatibility keep working as
-they do today and are labeled **beta**: they are outside the 1.0 support
-promise and will be replaced by a consolidated Books effort with no assigned
-release date. The broader capabilities below include those beta
-implementations, not a promise that every media type is supported in 1.0.
-Existing library data is preserved when upgrading.
+**Requirements:** Windows 10/11 x64 or Windows Server 2019/2022, an
+administrator account, about 1 GB for the program plus room for the database,
+and free ports 8020 and 8021.
 
-## What Silo does
+**Install**
 
-<table>
-  <tr>
-    <td width="33%" valign="top">
-      <strong>Play</strong><br><br>
-      Direct play when possible, remux when needed, transcode otherwise, with
-      VA-API, Quick Sync, and NVENC hardware acceleration.
-    </td>
-    <td width="33%" valign="top">
-      <strong>Organize</strong><br><br>
-      One catalog for films, series, audiobooks, ebooks, podcasts, and manga,
-      matched through metadata plugins such as TMDB and TVDB.
-    </td>
-    <td width="33%" valign="top">
-      <strong>Connect</strong><br><br>
-      Use the included web app, or the Jellyfin/Emby-compatible API with clients
-      such as <a href="https://vidhub.okaapps.com/what-does-vidhub-do/">VidHub</a>,
-      <a href="https://github.com/jarnedemeulemeester/findroid">Findroid</a>, and
-      <a href="https://firecore.com/infuse">Infuse</a>. Client coverage varies.
-    </td>
-  </tr>
-  <tr>
-    <td width="33%" valign="top">
-      <strong>Share</strong><br><br>
-      Household profiles with their own watch state, library access, and
-      parental controls.
-    </td>
-    <td width="33%" valign="top">
-      <strong>Manage</strong><br><br>
-      Libraries, users, providers, storage, search, and playback are configured
-      in the admin interface, not in config files.
-    </td>
-    <td width="33%" valign="top">
-      <strong>Scale</strong><br><br>
-      Start with one integrated server; split proxy and transcode roles across
-      shared PostgreSQL and Redis when you need to.
-    </td>
-  </tr>
-</table>
+1. Download `SiloWindowsTest-<version>-Setup.exe` from
+   [Releases](https://github.com/bihit/silo-server/releases) (checksums in
+   `SHA256SUMS.txt`). SmartScreen will warn because the build is not signed:
+   *More info → Run anyway*.
+2. Install (default folder `C:\Program Files\SiloWindowsTest`), then click
+   **Launch**. The setup window asks for administrator rights, generates random
+   secrets, creates the database and the services `silo-postgresql`,
+   `silo-garnet` and `silo-server`, starts them and opens
+   **http://127.0.0.1:8020**.
+   With the MSI instead, run **Start menu → Silo Windows Test → "Silo
+   einrichten (Setup)"** afterwards.
+3. Create the administrator account and add a library (Admin → Libraries).
 
-## Quick start
+**Media access:** the service runs as `NT SERVICE\silo-server`. Grant read
+access where needed:
+`icacls "D:\Movies" /grant "NT SERVICE\silo-server:(OI)(CI)RX"`.
+Mapped network drives are invisible to services; use UNC paths (the service
+uses the computer account on the network, which works in a domain; a home NAS
+needs extra setup – local drives are easiest for testing).
 
-Requires Docker Compose 2.24 or newer. The default Compose file runs the
-omnibus image: Silo with a bundled PostgreSQL (with pgvector) and Redis, plus
-Meilisearch when you turn it on.
+**Other devices:** no firewall port is opened. To allow your home network:
+`New-NetFirewallRule -DisplayName "Silo" -Direction Inbound -Protocol TCP -LocalPort 8020,8021 -Action Allow -Profile Private`.
+Web: `http://<pc-ip>:8020`; Jellyfin apps: `http://<pc-ip>:8021`. Do not
+expose Silo to the internet through router port forwarding; use a VPN or
+HTTPS (`deploy\windows\Install-SiloHttps.ps1`).
 
-```sh
-git clone https://github.com/Silo-Server/silo-server.git
-cd silo-server
-cp .env.example .env
-chmod 600 .env
-key="$(openssl rand -base64 48)" && printf '\nSECRET_KEY=%s\n' "$key" >> .env
-```
+**Ports in use?** Create `config\ports.json` in the install folder, e.g.
+`{"Silo": 8030, "Jellyfin": 8031}`, and run the setup again.
 
-Set `MEDIA_ROOT` in `.env` to the absolute path of your media, then:
+**Direct play only:** run
+`Setup-Silo.ps1 -StreamCopyOnly` (in `silo-server\deploy\windows`) before the
+first start to turn transcoding off.
 
-```sh
-docker compose up -d
-```
+**Language:** the UI follows the browser language (German or English);
+switch with `?lang=en` or `?lang=de`. A few admin pages are German-only in
+this build.
 
-Open <http://localhost:8090> and complete onboarding.
+**Backups:** nightly at 04:00 into `data\silo\artwork\backups` (Admin →
+Backups), plus `Backup-Silo.ps1` for database and configuration. Keep the
+`SECRET_KEY` from `config\silo.env` safe.
 
-Hardware transcoding (VA-API or NVIDIA) and access for proxy or transcode
-nodes on other hosts are commented out in `docker-compose.yml`; uncomment the
-lines you need.
+**Update:** back up, run the new `Setup.exe`, choose **Launch** at the end.
+Data and settings stay.
 
-### Updating an install from before the omnibus image
+**Uninstall:** Settings → Apps → "Silo Windows Test Build (inoffiziell)".
+Services and programs are removed; `data`, `config`, `logs` and `backups`
+stay in the install folder until you delete it.
 
-An install that runs Silo, PostgreSQL, and Redis in separate containers keeps
-that layout when its `.env` sets `COMPOSE_FILE=docker-compose.advanced.yml`; set
-it before updating. `docker-compose.yml` is an example of a new install and
-does not look for an earlier one: started on that data folder, it replaces
-the old `silo` container and comes up on a new, empty database with setup
-open, while the earlier PostgreSQL and Redis keep running with their data
-untouched. Moving into the single container is a separate step. The separate GPU and node Compose files are gone, so a `COMPOSE_FILE`
-that names one fails until it names only the deployment file you use, with
-the matching lines in it uncommented. See [Moving from the multi-container
-stack](docs/architecture/omnibus-image.md#moving-from-the-multi-container-stack).
+**Troubleshooting:** `Get-SiloStatus.ps1` and the logs in `logs\silo`; for bug
+reports attach the output of `Get-SiloSnapshot.ps1` (no passwords or IPs, but
+please review it before posting).
 
-The [user manual](https://siloserver.org/docs) covers the rest, starting with
-[installation](https://siloserver.org/docs/install): backing up `SECRET_KEY`,
-storage, GPU acceleration, Meilisearch, external PostgreSQL and Redis,
-transcode nodes, PostgreSQL tuning, backups, and updates.
+**Build from source:** see [`deploy/windows/README.md`](deploy/windows/README.md)
+and [`deploy/windows/package`](deploy/windows/package). The original Silo
+README is [`README-upstream.md`](README-upstream.md).
 
-## Builds and releases
-
-Until the first release, default-branch images carry an ordered `build-N` tag
-and the full commit SHA alongside `latest`. Build numbers order published images;
-they are not release versions. [Release versioning](docs/release-versioning.md)
-defines each tag and the SemVer contract.
-
-## Documentation
-
-- [User manual](https://siloserver.org/docs) — installing, configuring, and running Silo
-- [Development guide](DEVELOPMENT.md) — source setup, builds, tests, migrations
-- [Settings API](docs/settings-api.md), [Downloads API](docs/downloads-api.md), and [Apple Push Display Token](docs/notifications-push-api.md) — client contracts
-
-## Community and contributions
-
-Questions and discussion: [Discord](https://discord.gg/siloserver).
-Bugs, install problems, and performance issues: the
-[GitHub issue forms](https://github.com/Silo-Server/silo-server/issues/new/choose),
-which ask for reproduction steps and raw logs.
-
-Native clients are developed in
-[`silo-apple`](https://github.com/Silo-Server/silo-apple) and
-[`silo-android`](https://github.com/Silo-Server/silo-android). Client-visible
-API, authentication, playback, or metadata changes should consider both.
-
-Right now, the most helpful way to contribute is a clear, accurate issue. We
-implement and review changes through our own workflow, and pull request volume
-has outgrown what we can review carefully, so a good issue usually helps us
-more than a pull request.
-
-Pull requests are still welcome from contributors who've had one merged in a
-Silo repository, or when a maintainer asks for one. We close other pull
-requests without review. [CONTRIBUTING.md](CONTRIBUTING.md) explains what makes
-an issue useful.
-
-## Supporting Silo
-
-Silo is developed in spare time and funded out of pocket, and will stay free and
-open source. [GitHub Sponsors](https://github.com/sponsors/quick104) covers AI
-development tooling (Claude, Codex), push-notification relay infrastructure, and
-future project costs. Bug reports, code, and documentation help just as much.
-
-Code review is supported by [Macroscope](https://macroscope.com) through its
-open source program.
-
-<p>
-  <a href="https://macroscope.com">
-    <img alt="Sponsored by Macroscope" src="assets/macroscope-banner.png" width="400">
-  </a>
-</p>
-
-## License and trademarks
-
-Silo's source code is licensed under the
-**GNU Affero General Public License v3.0 or later** (`AGPL-3.0-or-later`), with
-an additional permission to combine it with platform SDKs such as the Windows
-App SDK. See [LICENSE](LICENSE) and [PLATFORM-EXCEPTION.md](PLATFORM-EXCEPTION.md).
-
-The **Silo name, logo, and wordmark are trademarks of Silo Media L.L.C.** and
-are not covered by the AGPL. Forks and redistributions may use the code but must
-not use the Silo brand as their identity and must remove or replace the brand
-assets. Publishing a Silo-branded app to an app store requires written
-permission. See [TRADEMARK.md](TRADEMARK.md) for permitted referential use,
-including phrases such as "compatible with Silo."
+**License:** AGPL-3.0-or-later with the Silo platform exception; bundled
+components are listed in
+[`THIRD-PARTY-NOTICES.md`](deploy/windows/package/THIRD-PARTY-NOTICES.md). The
+Silo name and logo are trademarks of Silo Media L.L.C.; this is an unofficial
+community build based on Silo.
