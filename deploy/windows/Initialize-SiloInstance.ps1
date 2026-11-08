@@ -99,6 +99,13 @@ Write-SiloOk 'garnet.conf geschrieben (nur 127.0.0.1)'
 
 # --- PostgreSQL cluster ---------------------------------------------------------
 Write-SiloStep 'PostgreSQL-Cluster'
+# initdb and pg_ctl drop the Administrators group (restricted token). Below
+# Program Files only administrators may write, so the running user gets write
+# access to the cluster and its log folder by name.
+New-Item -ItemType Directory -Force -Path $layout.PgData | Out-Null
+$me = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+Grant-SiloAccess -Path $layout.PgData -Account $me -Rights Modify
+Grant-SiloAccess -Path $pgLogDir -Account $me -Rights Modify
 if (Test-Path (Join-Path $layout.PgData 'PG_VERSION')) {
     Write-SiloOk "vorhanden: $($layout.PgData) (Version $((Get-Content (Join-Path $layout.PgData 'PG_VERSION')).Trim()))"
 } else {
