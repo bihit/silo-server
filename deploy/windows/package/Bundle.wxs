@@ -13,7 +13,7 @@
       <bal:WixStandardBootstrapperApplication LicenseFile="$(var.LicenseFile)" Theme="rtfLicense" />
     </BootstrapperApplication>
 
-    <Variable Name="InstallFolder" Type="formatted" Value="[WindowsVolume]SiloWindowsTest" bal:Overridable="yes" />
+    <Variable Name="InstallFolder" Type="formatted" Value="[ProgramFiles64Folder]SiloWindowsTest" bal:Overridable="yes" />
     <Variable Name="LaunchTarget" Type="formatted" Value="[System64Folder]WindowsPowerShell\v1.0\powershell.exe" />
     <Variable Name="LaunchArguments" Type="formatted"
               Value="-NoProfile -ExecutionPolicy Bypass -File &quot;[InstallFolder]\silo-server\deploy\windows\Setup-Silo.ps1&quot; -Pause" />

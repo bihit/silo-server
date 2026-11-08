@@ -126,6 +126,12 @@ if ($SkipInstallers) { Write-SiloStep 'Paket bereit (ohne Installer).'; return }
 Write-SiloStep 'MSI und EXE (WiX 5)'
 if (-not $Wix) { $Wix = (Get-Command wix -ErrorAction SilentlyContinue).Source }
 if (-not $Wix -or -not (Test-Path $Wix)) { throw 'wix nicht gefunden: WiX Toolset 5 installieren oder -Wix angeben.' }
+# The WixToolset.Bal.wixext 5.0.2 package ships its DLL under the newer name
+# WixToolset.BootstrapperApplications.wixext.dll, which "wix -ext" by package
+# id does not find; name the file directly when it is in the cache.
+$balExt = 'WixToolset.Bal.wixext'
+$balDll = Join-Path $env:USERPROFILE '.wix\extensions\WixToolset.Bal.wixext\5.0.2\wixext5\WixToolset.BootstrapperApplications.wixext.dll'
+if (Test-Path $balDll) { $balExt = $balDll }
 $name = 'SiloWindowsTest'
 $msi = Join-Path $out "$name-$Version.msi"
 $exe = Join-Path $out "$name-$Version-Setup.exe"
@@ -133,7 +139,7 @@ $wixArgs = @('-arch', 'x64', '-d', "Version=$Version", '-d', "StageDir=$root", '
 Invoke-SiloNative -FilePath $Wix -What 'wix build (MSI)' -Arguments (@('build', (Join-Path $PSScriptRoot 'Package.wxs')) + $wixArgs + @('-o', $msi))
 Invoke-SiloNative -FilePath $Wix -What 'wix build (EXE)' -Arguments @('build', (Join-Path $PSScriptRoot 'Bundle.wxs'), '-arch', 'x64',
     '-d', "Version=$Version", '-d', "MsiPath=$msi", '-d', "LicenseFile=$(Join-Path $PSScriptRoot 'License.rtf')",
-    '-ext', 'WixToolset.Util.wixext', '-ext', 'WixToolset.Bal.wixext', '-o', $exe)
+    '-ext', 'WixToolset.Util.wixext', '-ext', $balExt, '-o', $exe)
 foreach ($f in $msi, $exe) {
     $h = (Get-FileHash -Algorithm SHA256 $f).Hash.ToLower()
     "$h  $([IO.Path]::GetFileName($f))" | Add-Content -Encoding ascii (Join-Path $out 'SHA256SUMS.txt')

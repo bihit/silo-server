@@ -15,7 +15,7 @@ FFmpeg und Shawl (Dienst-Wrapper). Go, Node oder MSYS2 werden nicht benötigt.
 ## Installation
 
 1. `SiloWindowsTest-<Version>-Setup.exe` (oder die `.msi`) ausführen.
-   Standardordner: `C:\SiloWindowsTest`.
+   Standardordner: `C:\Program Files\SiloWindowsTest`.
 2. Am Ende **„Starten“** wählen bzw. im Startmenü **„Silo einrichten“**
    ausführen. Das Skript fragt nach Administratorrechten und
    - erzeugt zufällige Passwörter und den Schlüssel (`config\`, nur für
@@ -72,7 +72,7 @@ problems in this release's repository unless they also happen with an
 official Silo build.
 
 1. Run `SiloWindowsTest-<version>-Setup.exe` (or the `.msi`); default folder
-   `C:\SiloWindowsTest`.
+   `C:\Program Files\SiloWindowsTest`.
 2. Choose **Launch** at the end, or run **"Silo einrichten"** (set up Silo)
    from the Start menu. It asks for administrator rights, creates random
    secrets, the PostgreSQL database and the three Windows services, starts
