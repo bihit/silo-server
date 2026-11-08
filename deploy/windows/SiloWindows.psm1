@@ -145,6 +145,37 @@ function ConvertTo-SiloArgumentString {
     }) -join ' '
 }
 
+function Write-SiloPgDiagnostics {
+    # Explains why PostgreSQL does not listen: server state, who holds the
+    # port, Windows' reserved port ranges and the last log lines. PostgreSQL
+    # logs carry no passwords.
+    param([int]$Port)
+    $layout = Get-SiloLayout
+    Write-SiloWarn "Diagnose PostgreSQL (Port $Port):"
+    $status = & (Join-Path $layout.PgBin 'pg_ctl.exe') status -D $layout.PgData 2>&1
+    Write-Host ("      pg_ctl status: " + (($status | Select-Object -First 2) -join ' '))
+    $listen = @(Get-SiloListener -Port $Port)
+    if ($listen.Count -gt 0) {
+        foreach ($c in $listen) {
+            $p = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue
+            Write-Host "      Port ${Port}: Listener $($p.ProcessName) (PID $($c.OwningProcess))"
+        }
+    } else { Write-Host "      Port ${Port}: kein Listener gefunden" }
+    Write-Host ("      Verbindung zu 127.0.0.1:${Port}: " + $(if (Test-SiloPortOpen -Port $Port -TimeoutMs 1000) { 'moeglich' } else { 'nicht moeglich' }))
+    $reserved = @(netsh interface ipv4 show excludedportrange protocol=tcp 2>$null | ForEach-Object {
+            if ($_ -match '^\s*(\d+)\s+(\d+)') { if ($Port -ge [int]$Matches[1] -and $Port -le [int]$Matches[2]) { "$($Matches[1])-$($Matches[2])" } } })
+    if ($reserved.Count -gt 0) {
+        Write-SiloWarn "Windows hat Port $Port reserviert (Bereich $($reserved -join ', ')), oft durch Hyper-V, WSL oder Docker. Anderen Port in config\ports.json eintragen, z. B. {""PostgreSQL"": 5433}."
+    }
+    $logDir = Join-Path $layout.Logs 'postgresql'
+    $files = @(Join-Path $logDir 'pg_ctl.log') + @(Get-ChildItem $logDir -Filter 'postgresql-*.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1 | ForEach-Object FullName)
+    foreach ($f in $files) {
+        if (-not (Test-Path -LiteralPath $f)) { continue }
+        Write-Host "      --- $([IO.Path]::GetFileName($f)) (letzte Zeilen)"
+        Get-Content -LiteralPath $f -Tail 12 | ForEach-Object { Write-Host "      $_" }
+    }
+}
+
 function Invoke-SiloStarter {
     # Runs a program that launches a background server (pg_ctl start). It is
     # started without inheriting this session's handles, and only the program
@@ -261,10 +292,41 @@ function Get-SiloSecretValue {
     return (Get-Content -LiteralPath $Path -Raw).Trim()
 }
 
+function Get-SiloListener {
+    # Listening sockets on a TCP port as {LocalAddress, OwningProcess}.
+    # Get-NetTCPConnection returns nothing on some systems (a broken CIM
+    # provider), so netstat is the fallback. Its state column is localized
+    # ("LISTENING", "ABHÖREN"), so a listener is recognized by its unspecified
+    # remote address instead.
+    param([Parameter(Mandatory)][int]$Port)
+    $found = @(Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue |
+            ForEach-Object { [pscustomobject]@{ LocalAddress = $_.LocalAddress; OwningProcess = [int]$_.OwningProcess } })
+    if ($found.Count -gt 0) { return $found }
+    foreach ($line in (& "$env:SystemRoot\System32\netstat.exe" -ano -p TCP 2>$null) + (& "$env:SystemRoot\System32\netstat.exe" -ano -p TCPv6 2>$null)) {
+        $m = [regex]::Match($line, '^\s*TCP\s+(\S+):(\d+)\s+(0\.0\.0\.0:0|\[::\]:0)\s+\S+\s+(\d+)\s*$')
+        if ($m.Success -and [int]$m.Groups[2].Value -eq $Port) {
+            [pscustomobject]@{ LocalAddress = $m.Groups[1].Value.Trim('[', ']'); OwningProcess = [int]$m.Groups[4].Value }
+        }
+    }
+}
+
+function Test-SiloPortOpen {
+    # True when something accepts TCP connections on 127.0.0.1:Port.
+    param([Parameter(Mandatory)][int]$Port, [int]$TimeoutMs = 500)
+    $client = New-Object System.Net.Sockets.TcpClient
+    try {
+        $async = $client.BeginConnect('127.0.0.1', $Port, $null, $null)
+        if (-not $async.AsyncWaitHandle.WaitOne($TimeoutMs)) { return $false }
+        $client.EndConnect($async)
+        return $true
+    } catch { return $false }
+    finally { $client.Close() }
+}
+
 function Get-SiloPortOwner {
     # Returns listeners on a TCP port with their process, or nothing.
     param([Parameter(Mandatory)][int]$Port)
-    $listeners = @(Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue)
+    $listeners = @(Get-SiloListener -Port $Port)
     foreach ($l in $listeners) {
         $p = Get-Process -Id $l.OwningProcess -ErrorAction SilentlyContinue
         $path = $null
@@ -288,7 +350,7 @@ function Wait-SiloPort {
     param([int]$Port, [int]$TimeoutSeconds = 60, [switch]$Closed)
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     while ((Get-Date) -lt $deadline) {
-        $open = @(Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue).Count -gt 0
+        $open = (Test-SiloPortOpen -Port $Port) -or (@(Get-SiloListener -Port $Port).Count -gt 0)
         if ($open -ne [bool]$Closed) { return $true }
         Start-Sleep -Milliseconds 500
     }

@@ -160,10 +160,14 @@ if ($LASTEXITCODE -ne 0) {
     $svc = Get-CimInstance Win32_Service -Filter "Name='$((Get-SiloServiceNames).PostgreSQL)'" -ErrorAction SilentlyContinue
     if ($svc -and $svc.PathName -and $svc.PathName.IndexOf($layout.PgData, [StringComparison]::OrdinalIgnoreCase) -ge 0) { Start-Service $svc.Name }
     else {
-        Invoke-SiloStarter -FilePath $pgCtl -What 'pg_ctl start (siehe logs\postgresql)' -Arguments @('start', '-D', $layout.PgData, '-w', '-t', '60', '-l', (Join-Path $pgLogDir 'pg_ctl.log'))
+        try { Invoke-SiloStarter -FilePath $pgCtl -What 'pg_ctl start (siehe logs\postgresql)' -Arguments @('start', '-D', $layout.PgData, '-w', '-t', '60', '-l', (Join-Path $pgLogDir 'pg_ctl.log')) }
+        catch { Write-SiloPgDiagnostics -Port $ports.PostgreSQL; throw }
         $startedHere = $true
     }
-    if (-not (Wait-SiloPort -Port $ports.PostgreSQL -TimeoutSeconds 60)) { throw 'PostgreSQL lauscht nicht auf Port ' + $ports.PostgreSQL }
+    if (-not (Wait-SiloPort -Port $ports.PostgreSQL -TimeoutSeconds 60)) {
+        Write-SiloPgDiagnostics -Port $ports.PostgreSQL
+        throw 'PostgreSQL lauscht nicht auf Port ' + $ports.PostgreSQL
+    }
 }
 Write-SiloOk "laeuft auf 127.0.0.1:$($ports.PostgreSQL)"
 

@@ -53,7 +53,8 @@ if ($Mode -eq 'Service') {
     if ($LASTEXITCODE -eq 0) { Write-SiloOk 'laeuft bereits' }
     else {
         [void](Assert-PortFree $ports.PostgreSQL 'PostgreSQL')
-        Invoke-SiloStarter -FilePath $pgCtl -What 'pg_ctl start (siehe logs\postgresql)' -Arguments @('start', '-D', $layout.PgData, '-w', '-t', '60', '-l', (Join-Path $layout.Logs 'postgresql\pg_ctl.log'))
+        try { Invoke-SiloStarter -FilePath $pgCtl -What 'pg_ctl start (siehe logs\postgresql)' -Arguments @('start', '-D', $layout.PgData, '-w', '-t', '60', '-l', (Join-Path $layout.Logs 'postgresql\pg_ctl.log')) }
+        catch { Write-SiloPgDiagnostics -Port $ports.PostgreSQL; throw }
         Write-SiloOk "127.0.0.1:$($ports.PostgreSQL)"
     }
 
